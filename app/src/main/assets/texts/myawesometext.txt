@@ -1,0 +1,4 @@
+Super Jumper worked out rather well with the 2D OpenGL ES rendering engine. Now it’s time to
+go full 3D. We actually already worked in a 3D space when we defined our view frustum and the
+vertices of our sprites. In the latter case, the z coordinate of each vertex was simply set to 0 by
+default. The difference from 2D rendering really isn’t all that big

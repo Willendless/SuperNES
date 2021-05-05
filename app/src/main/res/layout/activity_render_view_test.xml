@@ -1,0 +1,12 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!--&lt;!&ndash;<LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"&ndash;&gt;-->
+<!--&lt;!&ndash;    android:orientation="vertical" android:layout_width="match_parent"&ndash;&gt;-->
+<!--&lt;!&ndash;    android:layout_height="match_parent">&ndash;&gt;-->
+
+<com.willendless.nes.view.RenderViewTest.RenderView android:orientation="vertical"
+    android:id="@+id/renderView"
+    android:layout_width="match_parent"
+    android:layout_height="match_parent"
+    xmlns:android="http://schemas.android.com/apk/res/android" />
+
+<!--</LinearLayout>-->
