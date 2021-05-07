@@ -2,14 +2,17 @@ package com.willendless.nes.framework.impl
 
 import android.view.View
 import com.willendless.nes.framework.Input.KeyEvent
+import com.willendless.nes.framework.Input.KeyEvent.Companion.KEY_DOWN
+import com.willendless.nes.framework.Input.KeyEvent.Companion.KEY_UP
 import com.willendless.nes.framework.Pool
 
 class KeyboardHandler(view: View): View.OnKeyListener {
-    val pressedKeys = Array<Boolean>(128) { false }
-    val keyEventPools = Pool<KeyEvent>(100) { KeyEvent() }
+    private val pressedKeys = Array<Boolean>(128) { false }
+    private val keyEventPools = Pool<KeyEvent>(100) { KeyEvent() }
     // Buffer unhandled key event
-    val keyEventsBuffer = ArrayList<KeyEvent>()
-    val keyEvents = ArrayList<KeyEvent>()
+    private val keyEventsBuffer = ArrayList<KeyEvent>()
+    private val keyEvents = ArrayList<KeyEvent>()
+
     init {
         view.setOnKeyListener(this)
         view.isFocusableInTouchMode = true
