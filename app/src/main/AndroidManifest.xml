@@ -19,13 +19,15 @@
 
     <application
         android:allowBackup="true"
+        android:hardwareAccelerated="true"
         android:icon="@mipmap/ic_launcher"
         android:label="@string/app_name"
         android:roundIcon="@mipmap/ic_launcher_round"
         android:supportsRtl="true"
-        android:theme="@style/Theme.NES"
-        android:hardwareAccelerated="true">
-        <activity android:name=".view.SurfaceViewTest"></activity>
+        android:theme="@style/Theme.NES">
+        <activity android:name=".view.NotificationActivity"></activity>
+        <activity android:name=".view.NotificationTest" />
+        <activity android:name=".view.SurfaceViewTest" />
         <activity android:name=".view.ShapeTest" />
         <activity android:name=".view.RenderViewTest" />
         <activity android:name=".view.FullScreenTest" />

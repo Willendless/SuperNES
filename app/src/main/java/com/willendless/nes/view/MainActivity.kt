@@ -11,7 +11,8 @@ class MainActivity : AppCompatActivity() {
     val tests = arrayListOf("LifeCycleTest", "SingleTouchTest", "MultiTouchTest",
                         "KeyTest", "AccelerometerTest", "AssetsTest",
                         "SoundPoolTest", "MediaPlayerTest", "FullScreenTest",
-                        "RenderViewTest", "ShapeTest", "BitmapTest", "FontTest", "SurfaceViewTest")
+                        "RenderViewTest", "ShapeTest", "BitmapTest", "FontTest", "SurfaceViewTest",
+                        "NotificationTest")
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
