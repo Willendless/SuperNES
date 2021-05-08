@@ -27,7 +27,7 @@ class ShapeTest : AppCompatActivity() {
             paint.style = Paint.Style.FILL
             paint.color = 0x770000ff
             canvas?.drawRect(100F, 100F, 200F, 200F, paint)
-            invalidate()
+//            invalidate()
         }
     }
 
