@@ -1,5 +1,6 @@
 package com.willendless.nes.emulator
 
+@ExperimentalUnsignedTypes
 data class Mem(val size: Int = 0x10000) {
     var mem = UByteArray(size)
 
@@ -11,8 +12,8 @@ data class Mem(val size: Int = 0x10000) {
 
     fun readUnsignedShort(addr: Int): Int {
         val lo = this[addr]
-        val hi = this[addr+1]
-        return (hi.toInt() shl 8) +  lo.toInt()
+        val hi = this[addr + 1]
+        return (hi.toInt() shl 8) + lo.toInt()
     }
 
     fun readUnsignedByte(addr: Int): Int = this[addr].toInt()

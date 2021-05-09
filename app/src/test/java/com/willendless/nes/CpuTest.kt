@@ -1,12 +1,13 @@
 package com.willendless.nes
 
-import com.willendless.nes.emulator.Cpu
+import com.willendless.nes.emulator.CPU
 import com.willendless.nes.emulator.Reg8bits
 import junit.framework.Assert.assertEquals
 import org.junit.Test
 
-class CpuTest {
-    private val cpu = Cpu
+@ExperimentalUnsignedTypes
+class CPUTest {
+    private val cpu = CPU
 
     @Test fun test_lda_immediate_load_data() {
         val program = ubyteArrayOf(0xa9u, 0x05u, 0x00u)

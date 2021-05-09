@@ -1,5 +1,6 @@
 package com.willendless.nes.emulator
 
+@ExperimentalUnsignedTypes
 object PStatus {
     var reg: UByte = 0u;
     fun getValUnsigned(): Int = reg.toInt()

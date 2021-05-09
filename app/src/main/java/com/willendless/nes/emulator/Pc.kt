@@ -1,8 +1,9 @@
 package com.willendless.nes.emulator
 
-data class Pc(var reg: UShort = 0u) {
-    operator fun inc(): Pc = Pc((reg + 1u).toUShort())
-    operator fun plus(operand: UInt): Pc = Pc((reg + operand).toUShort())
+@ExperimentalUnsignedTypes
+data class PC(var reg: UShort = 0u) {
+    operator fun inc(): PC = PC((reg + 1u).toUShort())
+    operator fun plus(operand: UInt): PC = PC((reg + operand).toUShort())
 
     fun getValUnsigned(): Int {
         return reg.toInt()

@@ -1,10 +1,12 @@
 package com.willendless.nes.emulator
 
-object Cpu {
+
+@ExperimentalUnsignedTypes
+object CPU {
     var a = Reg8bits()
     var x = Reg8bits()
     var y = Reg8bits()
-    var pc = Pc()
+    var pc = PC()
     var sp = Reg8bits()
     var status = PStatus
     var memory = Mem(0x10000)
@@ -25,7 +27,7 @@ object Cpu {
         x.set(0)
         y.set(0)
         status.set(0)
-        sp.set(0xfd) // todo: why
+        sp.set(0xfd) // See https://github.com/bugzmanov/nes_ebook/issues/10
         pc.set(memory.readUnsignedShort(0xFFFC))
     }
 
@@ -47,7 +49,7 @@ object Cpu {
     // ENSURES: return the memory address of the operand
     private fun getOperandAddress(mode: AddressMode): Int {
         return when (mode) {
-            AddressMode.Immediate ->  pc.getValUnsigned()
+            AddressMode.Immediate -> pc.getValUnsigned()
             AddressMode.ZeroPage -> peekCode()
             AddressMode.ZeroPageX -> x + peekCode()
             AddressMode.ZeroPageY -> y + peekCode()
@@ -424,7 +426,8 @@ object Cpu {
                 0xF8 -> status.setD()
                 0x78 -> status.setI()
                 // system functions: nop, brk, rti
-                0xEA -> {} // nop
+                0xEA -> {
+                } // nop
                 0x40 -> rti()
                 0x00 -> {
                     brk()

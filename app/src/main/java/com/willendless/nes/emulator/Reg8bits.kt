@@ -1,12 +1,15 @@
 package com.willendless.nes.emulator
 
+@ExperimentalUnsignedTypes
 data class Reg8bits(var reg: UByte = 0u) {
     constructor(v: Int) : this(v.toUByte()) {}
 
     // ENSURE: wrap around plus
     operator fun inc(): Reg8bits = Reg8bits((reg + 1u).toUByte())
+
     // ENSURE: wrap around sub
     operator fun dec(): Reg8bits = Reg8bits((reg - 1u).toUByte())
+
     // ENSURE: wrap around plus
     operator fun plus(operand: UInt): Int = (reg + operand).toUByte().toInt()
     operator fun plus(operand: Int): Int = (reg.toInt() + operand).toUByte().toInt()

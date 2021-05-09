@@ -1,7 +1,6 @@
 package com.willendless.nes.emulator
 
 import android.os.Build
-import android.os.NetworkOnMainThreadException
 import androidx.annotation.RequiresApi
 import com.willendless.nes.emulator.AddressMode.*
 
