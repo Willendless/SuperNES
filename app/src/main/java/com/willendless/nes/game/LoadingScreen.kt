@@ -12,7 +12,7 @@ class LoadingScreen(game: Game): Screen(game) {
     override fun update(deltaTime: Float) {
         // todo(ljr): initialize game assets and settings
         // todo(ljr): dispatch according to game name
-        game.setScreen(SnakeMainScreen(game))
+        game.setScreen(MainScreen(game))
     }
 
     override fun present(deltaTime: Float) {
