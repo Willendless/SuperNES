@@ -1,6 +1,5 @@
 package com.willendless.nes.emulator
 
-
 @ExperimentalUnsignedTypes
 object CPU {
     var a = Reg8bits()
@@ -13,16 +12,17 @@ object CPU {
     private val opcodeMap = OpcodeMap
 
     fun loadAndRun(program: UByteArray) {
-        // insert cartridge
-        program.copyInto(memory.mem, 0x8000, 0, program.size)
-        // reset vector
-        memory.writeUnsignedShort(0xFFFC, 0x8000)
-        // reset
+        load(program)
         reset()
         run()
     }
 
-    private fun reset() {
+    fun load(program: UByteArray) {
+        program.copyInto(memory.mem, 0x8000, 0, program.size)
+        memory.writeUnsignedShort(0xFFFC, 0x8000)
+    }
+
+    fun reset() {
         a.set(0)
         x.set(0)
         y.set(0)
@@ -352,10 +352,15 @@ object CPU {
     }
 
     // Run game in the memory begin from 0x8000.
-    private fun run() {
+    fun run(ddl: Long = 10_000) {
+        val startTime = System.nanoTime() / 1000_000
         while (true) {
             val code = fetchCode()
             val opcode = opcodeMap.getOpcode(code)
+            val curTime = System.nanoTime() / 1000_000
+
+            if (curTime - startTime > ddl) break
+
             println("$code: $opcode")
             when (opcode.code) {
                 // load/store
