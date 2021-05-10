@@ -30,7 +30,7 @@ class AndroidGraphics(val assets: AssetManager, val frameBuffer: Bitmap): Graphi
             bitmap = BitmapFactory.decodeStream(inputStream) ?: throw RuntimeException("Couldn't load bitmap" +
                     "from asset '" + fileName + "'")
         } catch (e: IOException) {
-            throw RuntimeException("Couldn't load bitmap" + "from asset '" + fileName + "'")
+            throw RuntimeException("Couldn't load bitmapfrom asset '$fileName'")
         } finally {
             try {
                 inputStream?.close()
