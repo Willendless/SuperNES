@@ -1,9 +1,7 @@
 package com.willendless.nes.framework.impl
 
-import android.content.Context
 import android.graphics.Bitmap
 import android.os.Bundle
-import android.os.PowerManager
 import android.view.Window
 import android.view.WindowInsets
 import android.view.WindowManager
@@ -15,7 +13,7 @@ abstract class AndroidGame: AppCompatActivity(), Game {
     private lateinit var graphics: Graphics
     private lateinit var audio: Audio
     private lateinit var input: Input
-    private lateinit var fileIO: FIleIO
+    private lateinit var fileIO: FileIO
     private lateinit var screen: Screen
 
     override fun onCreate(savedInstanceState: Bundle?) {
@@ -61,7 +59,7 @@ abstract class AndroidGame: AppCompatActivity(), Game {
             screen.dispose()
     }
 
-    override fun getFileIO(): FIleIO = fileIO
+    override fun getFileIO(): FileIO = fileIO
 
     override fun getGraphics(): Graphics = graphics
 

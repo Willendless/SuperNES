@@ -4,7 +4,7 @@ import java.io.IOException
 import java.io.InputStream
 import java.io.OutputStream
 
-interface FIleIO {
+interface FileIO {
     @Throws(IOException::class)
     fun readAsset(fileName: String): InputStream
     @Throws(IOException::class)
