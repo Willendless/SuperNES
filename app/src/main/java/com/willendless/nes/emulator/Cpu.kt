@@ -52,8 +52,8 @@ object CPU {
         return when (mode) {
             AddressMode.Immediate -> pc
             AddressMode.ZeroPage -> peekCode().toUShort()
-            AddressMode.ZeroPageX -> (peekCode() + x).toUShort()
-            AddressMode.ZeroPageY -> (peekCode() + y).toUShort()
+            AddressMode.ZeroPageX -> (peekCode() + x).toUByte().toUShort()  // zero page wrap around
+            AddressMode.ZeroPageY -> (peekCode() + y).toUByte().toUShort()
             AddressMode.Absolute -> memory.readUShort(pc)
             AddressMode.AbsoluteX -> (memory.readUShort(pc) + x).toUShort()
             AddressMode.AbsoluteY -> (memory.readUShort(pc) + y).toUShort()

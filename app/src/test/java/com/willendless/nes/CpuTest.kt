@@ -40,7 +40,6 @@ class CPUTest {
         assertEquals(1.toUByte(), cpu.a)
     }
 
-    // FIXME
     @Test fun test_lda_zero_page_x_overflow() {
         cpu.memory[0x00u] = 0x02u
         val program = ubyteArrayOf(0xa2u, 0xffu, 0xb5u, 0x01u, 0x00u)
