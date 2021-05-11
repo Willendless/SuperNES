@@ -5,6 +5,7 @@ import com.willendless.nes.framework.Game
 import com.willendless.nes.framework.Input
 import com.willendless.nes.framework.Screen
 
+@ExperimentalStdlibApi
 class SnakeMainScreen(game: Game): Screen(game) {
     @ExperimentalUnsignedTypes
     override fun update(deltaTime: Float) {
@@ -14,10 +15,10 @@ class SnakeMainScreen(game: Game): Screen(game) {
             when (keyEvents[i].type) {
                 Input.KeyEvent.KEY_DOWN -> {
                     when (keyEvents[i].KeyChar) {
-                        'w' -> CPU.memory.writeUnsignedByte(0xff, 0x77)
-                        's' -> CPU.memory.writeUnsignedByte(0xff, 0x73)
-                        'a' -> CPU.memory.writeUnsignedByte(0xff, 0x61)
-                        'd' -> CPU.memory.writeUnsignedByte(0xff, 0x64)
+                        'w' -> CPU.memory[0xFFu] = 0x77u
+                        's' -> CPU.memory[0xFFu] = 0x73u
+                        'a' -> CPU.memory[0xFFu] = 0x61u
+                        'd' -> CPU.memory[0xFFu] = 0x64u
                         else -> {}
                     }
                 }

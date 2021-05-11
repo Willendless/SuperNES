@@ -7,6 +7,7 @@ import com.willendless.nes.framework.Screen
 // This class mainly initializes game assets and CPU.
 // Then we will transit to the MainScreen according to game name.
 // Only update method is used.
+@ExperimentalStdlibApi
 @ExperimentalUnsignedTypes
 class LoadingSnakeScreen(game: Game): Screen(game) {
     private val program = ubyteArrayOf(
