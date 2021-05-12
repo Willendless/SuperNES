@@ -25,6 +25,7 @@
         android:roundIcon="@mipmap/ic_launcher_round"
         android:supportsRtl="true"
         android:theme="@style/Theme.NES">
+        <activity android:name=".view.SnakeGameActivityTest"/>
         <activity android:name=".view.NotificationActivity"></activity>
         <activity android:name=".view.NotificationTest" />
         <activity android:name=".view.SurfaceViewTest" />
