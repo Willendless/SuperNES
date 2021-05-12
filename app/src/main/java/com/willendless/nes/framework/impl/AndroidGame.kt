@@ -4,6 +4,7 @@ import android.content.Context
 import android.graphics.Bitmap
 import android.os.Bundle
 import android.os.PowerManager
+import android.util.Log
 import android.view.Window
 import android.view.WindowInsets
 import android.view.WindowManager
@@ -21,13 +22,14 @@ abstract class AndroidGame: AppCompatActivity(), Game {
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
 
+        Log.d("Game", "create")
         requestWindowFeature(Window.FEATURE_NO_TITLE)
         window.decorView.windowInsetsController!!.hide(
                 WindowInsets.Type.statusBars()
                         or WindowInsets.Type.navigationBars())
 
-        val frameBufferWidth = 1000
-        val frameBufferHeight = 1000
+        val frameBufferWidth = 32
+        val frameBufferHeight = 32
         val frameBuffer = Bitmap.createBitmap(frameBufferWidth, frameBufferHeight, Bitmap.Config.RGB_565)
 
         // scaleX
