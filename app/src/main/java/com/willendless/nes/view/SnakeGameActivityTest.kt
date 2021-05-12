@@ -5,6 +5,7 @@ import com.willendless.nes.framework.impl.AndroidGame
 import com.willendless.nes.game.LoadingScreen
 import com.willendless.nes.game.mock.LoadingSnakeScreen
 
-class SnakeGameActivityTest: AndroidGame() {
+@ExperimentalStdlibApi
+class SnakeGameActivity: AndroidGame() {
     override fun getStartScreen(): Screen = LoadingSnakeScreen(this)
 }
