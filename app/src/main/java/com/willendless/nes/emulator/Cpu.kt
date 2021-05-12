@@ -334,25 +334,33 @@ object CPU {
 
     private fun jsr(addressMode: AddressMode) {
         val addr = getOperandAddress(addressMode)
-        println("addr: ${java.lang.Integer.toHexString(addr.toInt())}")
         val jumpAddr = memory.readUShort(addr)
-        val retAddr = pc + 2u
+        val retAddr = pc + 1u
 
-        memory[(0x100u + sp - 1u).toUShort()] = (retAddr - 1u).toUShort()
+//        printAddr("sp", sp.toInt())
+//        printAddr("jumpAddr", jumpAddr.toInt())
+
+        memory[(0x100u + sp).toUShort()] = retAddr.toUShort()
         sp--
         sp--
         pc = jumpAddr
     }
 
     private fun rts() {
-        val retAddr = memory[(0x100u + sp + 1u).toUShort()] + 1u
         sp++
         sp++
+        val retAddr = memory.readUShort((0x100u + sp).toUShort()) + 1u
+//        printAddr("sp", sp.toInt())
+//        printAddr("retAddr", retAddr.toInt())
         pc = retAddr.toUShort()
     }
 
+    private fun printAddr(head: String, addr: Int) {
+        println("$head addr: ${java.lang.Integer.toHexString(addr.toInt())}")
+    }
+
     private fun branch() {
-        pc = (pc + peekCode()).toUShort()
+        pc = (pc.toInt() + peekCode().toByte()).toUShort()
     }
 
     // TODO
@@ -384,7 +392,7 @@ object CPU {
             val opcode = opcodeMap.getOpcode(code)
             val curPc = pc
 
-            println("[${java.lang.Integer.toHexString(pc.toInt() - 1)}]: $opcode")
+//            println("[${java.lang.Integer.toHexString(pc.toInt() - 1)}]: $opcode")
 
             // TODO: reflection with `getDeclaredField`?
             when (opcode.code.toUInt()) {
