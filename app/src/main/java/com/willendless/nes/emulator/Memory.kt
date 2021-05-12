@@ -22,6 +22,10 @@ data class Memory(val size: Int = 0x10000) {
         mem[addr.toInt() + 1] = data.rotateRight(8).toUByte()
     }
 
+    fun writeUnsignedShort(addr: UShort, data: UShort) {
+        this[addr] = data
+    }
+
     fun populate(source: UByteArray, offset: Int = 0) {
         source.copyInto(mem, offset)
     }

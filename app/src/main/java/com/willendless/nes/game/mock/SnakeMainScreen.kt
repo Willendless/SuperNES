@@ -31,7 +31,7 @@ class SnakeMainScreen(game: Game): Screen(game) {
             }
             i++
         }
-        CPU.memory.writeUnsignedShort(0xfe, Random().nextInt(16) + 1)
+        CPU.memory.writeUnsignedShort(0xfeu, (Random().nextInt(16) + 1).toUShort())
         CPU.run(500)
     }
 
@@ -53,8 +53,8 @@ class SnakeMainScreen(game: Game): Screen(game) {
         var x = 0
         var y = 0
         for (pos in 0x0200 until 0x0600) {
-            val colorByte = CPU.memory.readUnsignedByte(pos)
-            val color = getColor(colorByte)
+            val colorByte = CPU.memory[pos.toUShort()]
+            val color = getColor(colorByte.toInt())
             game.getGraphics().drawPixel(x, y, color)
             if (x == 31) {
                 x = 0

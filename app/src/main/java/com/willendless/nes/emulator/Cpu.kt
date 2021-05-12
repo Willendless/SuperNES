@@ -1,5 +1,8 @@
 package com.willendless.nes.emulator
 
+import android.os.Build
+import androidx.annotation.RequiresApi
+
 @ExperimentalStdlibApi
 @ExperimentalUnsignedTypes
 object CPU {
@@ -11,19 +14,20 @@ object CPU {
     var sp: UByte = 0u
     val status = PStatus
     val memory = Memory(0x10000)
-    val opcodeMap = OpcodeMap
+    private val opcodeMap = OpcodeMap
 
+    @RequiresApi(Build.VERSION_CODES.N)
     fun loadAndRun(program: UByteArray) {
-        load(program)
+        load(program, 0x8000)
         reset()
         run()
     }
 
-    fun load(program: UByteArray) {
+    fun load(program: UByteArray, offset: Int) {
         // insert cartridge
-        memory.populate(program, 0x8000)
+        memory.populate(program, offset)
         // reset vector
-        memory[0xFFFCu] = 0x8000u
+        memory[0xFFFCu] = offset.toUShort()
     }
 
     fun reset() {
@@ -54,7 +58,7 @@ object CPU {
             AddressMode.ZeroPage -> peekCode().toUShort()
             AddressMode.ZeroPageX -> (peekCode() + x).toUByte().toUShort()  // zero page wrap around
             AddressMode.ZeroPageY -> (peekCode() + y).toUByte().toUShort()
-            AddressMode.Absolute -> memory.readUShort(pc)
+            AddressMode.Absolute -> pc
             AddressMode.AbsoluteX -> (memory.readUShort(pc) + x).toUShort()
             AddressMode.AbsoluteY -> (memory.readUShort(pc) + y).toUShort()
             AddressMode.Indirect -> memory.readUShort(memory.readUShort(pc))
@@ -330,6 +334,7 @@ object CPU {
 
     private fun jsr(addressMode: AddressMode) {
         val addr = getOperandAddress(addressMode)
+        println("addr: ${java.lang.Integer.toHexString(addr.toInt())}")
         val jumpAddr = memory.readUShort(addr)
         val retAddr = pc + 2u
 
@@ -344,6 +349,10 @@ object CPU {
         sp++
         sp++
         pc = retAddr.toUShort()
+    }
+
+    private fun branch() {
+        pc = (pc + peekCode()).toUShort()
     }
 
     // TODO
@@ -368,13 +377,15 @@ object CPU {
     fun run(timeout_ms: Long = 10_000) {
         val startTime = System.nanoTime() / 1000_000
         while (true) {
-            val code = fetchCode()
-            val opcode = opcodeMap.getOpcode(code)
             val curTime = System.nanoTime() / 1000_000
-
             if (curTime - startTime > timeout_ms) break
 
-            println("$code: $opcode")
+            val code = fetchCode()
+            val opcode = opcodeMap.getOpcode(code)
+            val curPc = pc
+
+            println("[${java.lang.Integer.toHexString(pc.toInt() - 1)}]: $opcode")
+
             // TODO: reflection with `getDeclaredField`?
             when (opcode.code.toUInt()) {
                 // load/store
@@ -423,24 +434,23 @@ object CPU {
                 0x4Cu, 0x6Cu -> jmp(opcode.mode)
                 0x20u -> jsr(opcode.mode)
                 0x60u -> rts()
-                // TODO
                 // branches
-//                0x90u -> if (status.c() == 0) pc.set(pc.getValUnsigned() + peekCode())
-//                0xB0u -> if (status.c() == 1) pc.set(pc.getValUnsigned() + peekCode())
-//                0xF0u -> if (status.z() == 1) pc.set(pc.getValUnsigned() + peekCode())
-//                0x30u -> if (status.n() == 1) pc.set(pc.getValUnsigned() + peekCode())
-//                0xD0u -> if (status.z() == 0) pc.set(pc.getValUnsigned() + peekCode())
-//                0x10u -> if (status.n() == 0) pc.set(pc.getValUnsigned() + peekCode())
-//                0x50u -> if (status.v() == 0) pc.set(pc.getValUnsigned() + peekCode())
-//                0x70u -> if (status.v() == 1) pc.set(pc.getValUnsigned() + peekCode())
+                0x90u -> if (!status[Flag.CARRY]) branch()
+                0xB0u -> if (status[Flag.CARRY]) branch()
+                0xD0u -> if (!status[Flag.ZERO]) branch()
+                0xF0u -> if (status[Flag.ZERO]) branch()
+                0x10u -> if (!status[Flag.NEGATIVE]) branch()
+                0x30u -> if (status[Flag.NEGATIVE]) branch()
+                0x50u -> if (!status[Flag.OVERFLOW]) branch()
+                0x70u -> if (status[Flag.OVERFLOW]) branch()
                 // status
-//                0x18u -> status.clearC()
-//                0xD8u -> status.clearD()
-//                0x58u -> status.clearI()
-//                0xB8u -> status.clearV()
-//                0x38u -> status.setC()
-//                0xF8u -> status.setD()
-//                0x78u -> status.setI()
+                0x18u -> status[Flag.CARRY] = false
+                0xD8u -> status[Flag.DECIMAL_MODE] = false
+                0x58u -> status[Flag.INTERRUPT_DISABLE] = false
+                0xB8u -> status[Flag.OVERFLOW] = false
+                0x38u -> status[Flag.CARRY] = true
+                0xF8u -> status[Flag.DECIMAL_MODE] = true
+                0x78u -> status[Flag.INTERRUPT_DISABLE] = true
                 // system functions: nop, brk, rti
                 0xEAu -> {
                 } // nop
@@ -449,9 +459,11 @@ object CPU {
                     brk()
                     return
                 }
-                else -> unreachable("opcode is $opcode")
+                else -> unreachable("unreachable code")
             }
-            pc = (pc + opcode.len - 1u).toUShort()
+            if (curPc == pc) {
+                pc = (pc + opcode.len - 1u).toUShort()
+            }
         }
     }
 }

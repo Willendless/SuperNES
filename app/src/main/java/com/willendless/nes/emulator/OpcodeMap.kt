@@ -6,7 +6,7 @@ import com.willendless.nes.emulator.AddressMode.*
 
 
 @ExperimentalUnsignedTypes
-data class Opcode(val code: UByte, val name: String, val len: UShort, val mode: AddressMode)
+data class Opcode(val code: UByte = 0u, val name: String = "Unknown", val len: UShort = 0u, val mode: AddressMode = NoneAddressing)
 
 @ExperimentalUnsignedTypes
 object OpcodeMap {
@@ -187,6 +187,5 @@ object OpcodeMap {
         }
     }
 
-    @RequiresApi(Build.VERSION_CODES.N)
-    fun getOpcode(code: UByte) = opcodes.getOrDefault(code, Opcode(0u, "Unknown", 0u, NoneAddressing))
+    fun getOpcode(code: UByte) = opcodes.getOrElse(code) { Opcode() }
 }

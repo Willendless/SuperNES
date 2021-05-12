@@ -33,7 +33,7 @@ class LoadingSnakeScreen(game: Game): Screen(game) {
             0xeau, 0xcau, 0xd0u, 0xfbu, 0x60u)
 
     override fun update(deltaTime: Float) {
-        CPU.load(program)
+        CPU.load(program, 0x600)
         CPU.reset()
         game.setScreen(SnakeMainScreen(game))
     }
