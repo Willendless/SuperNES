@@ -58,7 +58,7 @@ object CPU {
             AddressMode.ZeroPage -> peekCode().toUShort()
             AddressMode.ZeroPageX -> (peekCode() + x).toUByte().toUShort()  // zero page wrap around
             AddressMode.ZeroPageY -> (peekCode() + y).toUByte().toUShort()
-            AddressMode.Absolute -> pc
+            AddressMode.Absolute -> memory.readUShort(pc)
             AddressMode.AbsoluteX -> (memory.readUShort(pc) + x).toUShort()
             AddressMode.AbsoluteY -> (memory.readUShort(pc) + y).toUShort()
             AddressMode.Indirect -> memory.readUShort(memory.readUShort(pc))
@@ -72,6 +72,9 @@ object CPU {
         val addr = getOperandAddress(addressMode)
         a = memory[addr]
         status.updateZN(a)
+        if (addr == 0xffu.toUShort()) {
+            println("read key val: ${memory[0xFFu]}")
+        }
     }
 
     private fun ldx(addressMode: AddressMode) {
@@ -329,12 +332,13 @@ object CPU {
 
     private fun jmp(addressMode: AddressMode) {
         val addr = getOperandAddress(addressMode)
-        pc = memory.readUShort(addr)
+//        pc = memory.readUShort(addr)
+        pc = addr
     }
 
     private fun jsr(addressMode: AddressMode) {
-        val addr = getOperandAddress(addressMode)
-        val jumpAddr = memory.readUShort(addr)
+        val jumpAddr = getOperandAddress(addressMode)
+//        val jumpAddr = memory.readUShort(addr)
         val retAddr = pc + 1u
 
 //        printAddr("sp", sp.toInt())
@@ -360,7 +364,7 @@ object CPU {
     }
 
     private fun branch() {
-        pc = (pc.toInt() + peekCode().toByte()).toUShort()
+        pc = (pc.toInt() + peekCode().toByte() + 1).toUShort()
     }
 
     // TODO
@@ -372,13 +376,19 @@ object CPU {
 //        pc.set(memory.readUnsignedShort(0xFFFE))
 //        // side effect of brk is set I to 1
 //        status.setI()
+        memory.writeUnsignedShort((sp + 0x100u).toUShort(), pc)
+        sp--
+        memory[(sp + 0x100u).toUShort()] = status.toUByte() or 0b0011_0000u
+        sp--
+        pc = 0xFFFEu
+        status[Flag.INTERRUPT_DISABLE] = true
     }
 
     private fun rti() {
-//        sp--
-//        status.set(memory.readUnsignedByte(sp.getValUnsigned()))
-//        sp--
-//        pc.set(memory.readUnsignedShort(sp.getValUnsigned()))
+        sp--
+        status.invoke(memory[(sp + 0x100u).toUShort()])
+        sp--
+        pc = memory.readUShort((sp + 0x100u).toUShort())
     }
 
     // Run game in the memory begin from 0x8000.
@@ -392,7 +402,7 @@ object CPU {
             val opcode = opcodeMap.getOpcode(code)
             val curPc = pc
 
-//            println("[${java.lang.Integer.toHexString(pc.toInt() - 1)}]: $opcode")
+//            println("[0x${java.lang.Integer.toHexString(pc.toInt() - 1)}]: $opcode")
 
             // TODO: reflection with `getDeclaredField`?
             when (opcode.code.toUInt()) {
