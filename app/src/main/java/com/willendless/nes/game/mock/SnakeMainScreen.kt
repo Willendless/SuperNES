@@ -18,21 +18,23 @@ class SnakeMainScreen(game: Game): Screen(game) {
             when (keyEvents[i].type) {
                 Input.KeyEvent.KEY_DOWN -> {
                     val char = keyEvents[i].KeyChar
-                    Log.d("Events", "handle $char key down")
                     when (keyEvents[i].KeyChar) {
-                        'w' -> CPU.memory[0xFFu] = 0x77u
-                        's' -> CPU.memory[0xFFu] = 0x73u
-                        'a' -> CPU.memory[0xFFu] = 0x61u
-                        'd' -> CPU.memory[0xFFu] = 0x64u
-                        else -> {}
+                        'w' -> CPU.memory.writeUnsignedByte(0xFFu, 0x77u)
+                        's' -> CPU.memory.writeUnsignedByte(0xFFu, 0x73u)
+                        'a' -> CPU.memory.writeUnsignedByte(0xFFu, 0x61u)
+                        'd' -> CPU.memory.writeUnsignedByte(0xFFu, 0x64u)
+                        else -> {
+                            Log.d("useless key pushed", "${keyEvents[i].KeyChar}")
+                        }
                     }
+                    Log.d("Events", "handle $char key down, mem val ${CPU.memory[0xFFu]}")
                 }
                 else -> {}
             }
             i++
         }
-        CPU.memory.writeUnsignedShort(0xfeu, (Random().nextInt(16) + 1).toUShort())
-        CPU.run(50)
+        CPU.memory.writeUnsignedByte(0xfeu, (Random().nextInt(16) + 1).toUByte())
+        CPU.run(30)
     }
 
     fun getColor(byte: Int) = when (byte) {
