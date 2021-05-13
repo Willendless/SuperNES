@@ -32,7 +32,7 @@ class SnakeMainScreen(game: Game): Screen(game) {
             i++
         }
         CPU.memory.writeUByte(0xfeu, (Random().nextInt(16) + 1).toUByte())
-        CPU.run(30)
+        CPU.run(3)
     }
 
     private fun getColor(byte: Int) = when (byte) {

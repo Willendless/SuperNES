@@ -180,13 +180,16 @@ object CPU {
     private fun bit(addressMode: AddressMode) {
         val addr = getOperandAddress(addressMode)
         val value = memory.readUByte(addr)
-        status.setStatus(Flag.OVERFLOW, (value and Flag.OVERFLOW.mask) != 0u.toUByte())
-        status.updateZN(value)
+        status.apply {
+            setStatus(Flag.OVERFLOW, (value and Flag.OVERFLOW.mask) != 0u.toUByte())
+            setStatus(Flag.NEGATIVE, (value and Flag.NEGATIVE.mask) != 0u.toUByte())
+            setStatus(Flag.ZERO, (a and value) == 0u.toUByte())
+        }
     }
 
     private fun adc(addressMode: AddressMode) {
         val addr = getOperandAddress(addressMode)
-        val sum = a + memory.readUByte(addr) + if (status[Flag.CARRY]) 1u else 0u
+        val sum = a + memory.readUByte(addr) + if (status.getStatus(Flag.CARRY)) 1u else 0u
         status.apply {
             setStatus(Flag.CARRY, sum > UByte.MAX_VALUE)
             setStatus(Flag.OVERFLOW,
@@ -198,11 +201,12 @@ object CPU {
 
     private fun sbc(addressMode: AddressMode) {
         val addr = getOperandAddress(addressMode)
-        val diff = a - memory.readUByte(addr) - if (status[Flag.CARRY]) 0u else 1u
+        val value = memory.readUByte(addr)
+        val diff = a + (value xor 0xFFu) + 1u.toUByte() - if (status.getStatus(Flag.CARRY)) 0u else 1u
         status.apply {
             setStatus(Flag.CARRY, diff > UByte.MAX_VALUE)
             setStatus(Flag.OVERFLOW,
-                    (memory.readUByte(addr).toUInt() xor diff) and (a.toUInt() xor diff) and 0b1000_0000u != 0u)
+                    (value.toUInt() xor diff) and (a.toUInt() xor diff) and 0b1000_0000u != 0u)
         }
         a = diff.toUByte()
         status.updateZN(a)
@@ -210,9 +214,10 @@ object CPU {
 
     private fun cmp(addressMode: AddressMode) {
         val addr = getOperandAddress(addressMode)
+        val other = memory.readUByte(addr)
         status.apply {
-            setStatus(Flag.CARRY, a >= memory.readUByte(addr))
-            updateZN((a - memory.readUByte(addr)).toUByte())
+            setStatus(Flag.CARRY, a >= other)
+            updateZN((a - other).toUByte())
         }
     }
 
@@ -301,7 +306,7 @@ object CPU {
     }
 
     private fun rol(addressMode: AddressMode) {
-        val carry = status[Flag.CARRY]
+        val carry = status.getStatus(Flag.CARRY)
         val value = when (addressMode) {
             AddressMode.NoneAddressing -> {
                 status.setStatus(Flag.CARRY, (a and 0b1000_0000u) != 0.toUByte())
@@ -321,7 +326,7 @@ object CPU {
     }
 
     private fun ror(addressMode: AddressMode) {
-        val carry = status[Flag.CARRY]
+        val carry = status.getStatus(Flag.CARRY)
         val value = when (addressMode) {
             AddressMode.NoneAddressing -> {
                 status.setStatus(Flag.CARRY, (a and 1u) != 0.toUByte())

@@ -18,8 +18,6 @@ object PStatus {
 
     fun toUByte(): UByte = reg
 
-    operator fun get(i: Flag) = (reg and i.mask) != 0.toUByte()
-
     operator fun invoke(i: UByte) {
         reg = i
     }
