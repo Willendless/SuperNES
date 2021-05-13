@@ -8,9 +8,9 @@ import com.willendless.nes.framework.Input
 import com.willendless.nes.framework.Screen
 import java.util.*
 
+@ExperimentalUnsignedTypes
 @ExperimentalStdlibApi
 class SnakeMainScreen(game: Game): Screen(game) {
-    @ExperimentalUnsignedTypes
     override fun update(deltaTime: Float) {
         val keyEvents = game.getInput().getKeyEvents()
         var i = 0
@@ -71,5 +71,9 @@ class SnakeMainScreen(game: Game): Screen(game) {
     }
 
     override fun dispose() {
+    }
+
+    override fun destroy() {
+        CPU.memory.clear()
     }
 }
