@@ -19,25 +19,23 @@ class SnakeMainScreen(game: Game): Screen(game) {
                 Input.KeyEvent.KEY_DOWN -> {
                     val char = keyEvents[i].KeyChar
                     when (keyEvents[i].KeyChar) {
-                        'w' -> CPU.memory.writeUnsignedByte(0xFFu, 0x77u)
-                        's' -> CPU.memory.writeUnsignedByte(0xFFu, 0x73u)
-                        'a' -> CPU.memory.writeUnsignedByte(0xFFu, 0x61u)
-                        'd' -> CPU.memory.writeUnsignedByte(0xFFu, 0x64u)
-                        else -> {
-                            Log.d("useless key pushed", "${keyEvents[i].KeyChar}")
-                        }
+                        'w' -> CPU.memory.writeUByte(0xFFu, 0x77u)
+                        's' -> CPU.memory.writeUByte(0xFFu, 0x73u)
+                        'a' -> CPU.memory.writeUByte(0xFFu, 0x61u)
+                        'd' -> CPU.memory.writeUByte(0xFFu, 0x64u)
+                        else -> {}
                     }
-                    Log.d("Events", "handle $char key down, mem val ${CPU.memory[0xFFu]}")
+                    Log.d("Events", "handle $char key down, mem val ${CPU.memory.readUByte(0xFFu)}")
                 }
                 else -> {}
             }
             i++
         }
-        CPU.memory.writeUnsignedByte(0xfeu, (Random().nextInt(16) + 1).toUByte())
+        CPU.memory.writeUByte(0xfeu, (Random().nextInt(16) + 1).toUByte())
         CPU.run(30)
     }
 
-    fun getColor(byte: Int) = when (byte) {
+    private fun getColor(byte: Int) = when (byte) {
         0 -> BLACK
         1 -> WHITE
         2, 9 -> GRAY
@@ -55,7 +53,7 @@ class SnakeMainScreen(game: Game): Screen(game) {
         var x = 0
         var y = 0
         for (pos in 0x0200 until 0x0600) {
-            val colorByte = CPU.memory[pos.toUShort()]
+            val colorByte = CPU.memory.readUByte(pos.toUShort())
             val color = getColor(colorByte.toInt())
             game.getGraphics().drawPixel(x, y, color)
             if (x == 31) {

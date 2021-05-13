@@ -27,7 +27,7 @@ object CPU {
         // insert cartridge
         memory.populate(program, offset)
         // reset vector
-        memory[0xFFFCu] = offset.toUShort()
+        memory.writeUShort(0xFFFCu, offset.toUShort())
     }
 
     fun reset() {
@@ -42,11 +42,11 @@ object CPU {
     // Get current instruction byte without range check
     // and increment pc.
     // SIDE EFFECT: the value of pc will be incremented by 1.
-    private fun fetchCode(): UByte = memory[pc++]
+    private fun fetchCode(): UByte = memory.readUByte(pc++)
 
     // Get current instruction byte without range check.
     // No side effect.
-    private fun peekCode(): UByte = memory[pc]
+    private fun peekCode(): UByte = memory.readUByte(pc)
 
     // Return operand according to addressing mode.
     // No side effect to pc or any other registers.
@@ -62,46 +62,43 @@ object CPU {
             AddressMode.AbsoluteX -> (memory.readUShort(pc) + x).toUShort()
             AddressMode.AbsoluteY -> (memory.readUShort(pc) + y).toUShort()
             AddressMode.Indirect -> memory.readUShort(memory.readUShort(pc))
-            AddressMode.IndirectX -> memory.readUShort((memory[pc] + x).toUShort())
-            AddressMode.IndirectY -> (memory.readUShort(memory[pc].toUShort()) + y).toUShort()
+            AddressMode.IndirectX -> memory.readUShort((memory.readUByte(pc) + x).toUShort())
+            AddressMode.IndirectY -> (memory.readUShort(memory.readUByte(pc).toUShort()) + y).toUShort()
             AddressMode.NoneAddressing -> unreachable("$mode not supported")
         }
     }
 
     private fun lda(addressMode: AddressMode) {
         val addr = getOperandAddress(addressMode)
-        a = memory[addr]
+        a = memory.readUByte(addr)
         status.updateZN(a)
-        if (addr == 0xffu.toUShort()) {
-            println("read key val: ${memory[0xFFu]}")
-        }
     }
 
     private fun ldx(addressMode: AddressMode) {
         val addr = getOperandAddress(addressMode)
-        x = memory[addr]
+        x = memory.readUByte(addr)
         status.updateZN(x)
     }
 
     private fun ldy(addressMode: AddressMode) {
         val addr = getOperandAddress(addressMode)
-        y = memory[addr]
+        y = memory.readUByte(addr)
         status.updateZN(y)
     }
 
     private fun sta(addressMode: AddressMode) {
         val addr = getOperandAddress(addressMode)
-        memory[addr] = a
+        memory.writeUByte(addr, a)
     }
 
     private fun stx(addressMode: AddressMode) {
         val addr = getOperandAddress(addressMode)
-        memory[addr] = x
+        memory.writeUByte(addr, x)
     }
 
     private fun sty(addressMode: AddressMode) {
         val addr = getOperandAddress(addressMode)
-        memory[addr] = y
+        memory.writeUByte(addr, y)
     }
 
     private fun tax() {
@@ -136,96 +133,109 @@ object CPU {
 
     private fun pha() {
         val addr = (0x100u + sp--).toUShort()
-        memory[addr] = a
+        memory.writeUByte(addr, a)
     }
 
     private fun php() {
         // https://wiki.nesdev.com/w/index.php/CPU_status_flag_behavior
         val addr = (0x100u + sp--).toUShort()
-        memory[addr] = status.toUByte() or Flag.BREAK.mask or Flag.BREAK2.mask
+        memory.writeUByte(addr,
+        status.toUByte() or Flag.BREAK.mask or Flag.BREAK2.mask)
     }
 
     private fun pla() {
         val addr = (0x100u + ++sp).toUShort()
-        a = memory[addr]
+        a = memory.readUByte(addr)
         status.updateZN(a)
     }
 
     private fun plp() {
         val addr = (0x100u + ++sp).toUShort()
-        status(memory[addr])
-        // TODO: why?
-        status[Flag.BREAK] = false
-        status[Flag.BREAK2] = true
+        status.apply {
+            this(memory.readUByte(addr))
+            // TODO: why?
+            setStatus(Flag.BREAK, false)
+            setStatus(Flag.BREAK2, true)
+        }
     }
 
     private fun and(addressMode: AddressMode) {
         val addr = getOperandAddress(addressMode)
-        a = a and memory[addr]
+        a = a and memory.readUByte(addr)
         status.updateZN(a)
     }
 
     private fun ora(addressMode: AddressMode) {
         val addr = getOperandAddress(addressMode)
-        a = a or memory[addr]
+        a = a or memory.readUByte(addr)
         status.updateZN(a)
     }
 
     private fun eor(addressMode: AddressMode) {
         val addr = getOperandAddress(addressMode)
-        a = a xor memory[addr]
+        a = a xor memory.readUByte(addr)
         status.updateZN(a)
     }
 
     private fun bit(addressMode: AddressMode) {
         val addr = getOperandAddress(addressMode)
-        val value = memory[addr]
-        status[Flag.OVERFLOW] = (value and Flag.OVERFLOW.mask) != 0u.toUByte()
+        val value = memory.readUByte(addr)
+        status.setStatus(Flag.OVERFLOW, (value and Flag.OVERFLOW.mask) != 0u.toUByte())
         status.updateZN(value)
     }
 
     private fun adc(addressMode: AddressMode) {
         val addr = getOperandAddress(addressMode)
-        val sum = a + memory[addr] + if (status[Flag.CARRY]) 1u else 0u
-        status[Flag.CARRY] = sum > UByte.MAX_VALUE
-        status[Flag.OVERFLOW] =
-            (memory[addr].toUInt() xor sum) and (a.toUInt() xor sum) and 0b1000_0000u != 0u
+        val sum = a + memory.readUByte(addr) + if (status[Flag.CARRY]) 1u else 0u
+        status.apply {
+            setStatus(Flag.CARRY, sum > UByte.MAX_VALUE)
+            setStatus(Flag.OVERFLOW,
+                    (memory.readUByte(addr).toUInt() xor sum) and (a.toUInt() xor sum) and 0b1000_0000u != 0u)
+        }
         a = sum.toUByte()
-        status.updateZN(a)
+        PStatus.updateZN(a)
     }
 
     private fun sbc(addressMode: AddressMode) {
         val addr = getOperandAddress(addressMode)
-        val diff = a - memory[addr] - if (status[Flag.CARRY]) 0u else 1u
-        status[Flag.CARRY] = diff > UByte.MAX_VALUE
-        status[Flag.OVERFLOW] =
-            (memory[addr].toUInt() xor diff) and (a.toUInt() xor diff) and 0b1000_0000u != 0u
+        val diff = a - memory.readUByte(addr) - if (status[Flag.CARRY]) 0u else 1u
+        status.apply {
+            setStatus(Flag.CARRY, diff > UByte.MAX_VALUE)
+            setStatus(Flag.OVERFLOW,
+                    (memory.readUByte(addr).toUInt() xor diff) and (a.toUInt() xor diff) and 0b1000_0000u != 0u)
+        }
         a = diff.toUByte()
         status.updateZN(a)
     }
 
     private fun cmp(addressMode: AddressMode) {
         val addr = getOperandAddress(addressMode)
-        status[Flag.CARRY] = a >= memory[addr]
-        status.updateZN((a - memory[addr]).toUByte())
+        status.apply {
+            setStatus(Flag.CARRY, a >= memory.readUByte(addr))
+            updateZN((a - memory.readUByte(addr)).toUByte())
+        }
     }
 
     private fun cpx(addressMode: AddressMode) {
         val addr = getOperandAddress(addressMode)
-        status[Flag.CARRY] = x >= memory[addr]
-        status.updateZN((x - memory[addr]).toUByte())
+        status.apply {
+            setStatus(Flag.CARRY, x >= memory.readUByte(addr))
+            updateZN((x - memory.readUByte(addr)).toUByte())
+        }
     }
 
     private fun cpy(addressMode: AddressMode) {
         val addr = getOperandAddress(addressMode)
-        status[Flag.CARRY] = y >= memory[addr]
-        status.updateZN((y - memory[addr]).toUByte())
+        status.apply {
+            setStatus(Flag.CARRY, y >= memory.readUByte(addr))
+            updateZN((y - memory.readUByte(addr)).toUByte())
+        }
     }
 
     private fun inc(addressMode: AddressMode) {
         val addr = getOperandAddress(addressMode)
-        val res = (memory[addr] + 1u).toUByte()
-        memory[addr] = res
+        val res = (memory.readUByte(addr) + 1u).toUByte()
+        memory.writeUByte(addr, res)
         status.updateZN(res)
     }
 
@@ -241,8 +251,8 @@ object CPU {
 
     private fun dec(addressMode: AddressMode) {
         val addr = getOperandAddress(addressMode)
-        val res = (memory[addr] - 1u).toUByte()
-        memory[addr] = res
+        val res = (memory.readUByte(addr) - 1u).toUByte()
+        memory.writeUByte(addr, res)
         status.updateZN(res)
     }
 
@@ -259,15 +269,15 @@ object CPU {
     private fun asl(addressMode: AddressMode) {
         val value = when (addressMode) {
             AddressMode.NoneAddressing -> {
-                status[Flag.CARRY] = (a and 0b1000_0000u) != 0.toUByte()
+                status.setStatus(Flag.CARRY, (a and 0b1000_0000u) != 0.toUByte())
                 a = (a.toInt() shl 1).toUByte()
                 a
             }
             else -> {
                 val addr = getOperandAddress(addressMode)
-                status[Flag.CARRY] = (memory[addr] and 0b1000_0000u) != 0.toUByte()
-                memory[addr] = (memory[addr].toInt() shl 1).toUByte()
-                memory[addr]
+                status.setStatus(Flag.CARRY, (memory.readUByte(addr) and 0b1000_0000u) != 0.toUByte())
+                memory.writeUByte(addr, (memory.readUByte(addr).toUInt() shl 1).toUByte())
+                memory.readUByte(addr)
             }
         }
         status.updateZN(value)
@@ -276,15 +286,15 @@ object CPU {
     private fun lsr(addressMode: AddressMode) {
         val value = when (addressMode) {
             AddressMode.NoneAddressing -> {
-                status[Flag.CARRY] = (a and 1u) != 0.toUByte()
+                status.setStatus(Flag.CARRY, (a and 1u) != 0.toUByte())
                 a = (a.toInt() shr 1).toUByte()
                 a
             }
             else -> {
                 val addr = getOperandAddress(addressMode)
-                status[Flag.CARRY] = (memory[addr] and 1u) != 0.toUByte()
-                memory[addr] = (memory[addr].toInt() shr 1).toUByte()
-                memory[addr]
+                status.setStatus(Flag.CARRY, (memory.readUByte(addr) and 1u) != 0.toUByte())
+                memory.writeUByte(addr, (memory.readUByte(addr).toInt() shr 1).toUByte())
+                memory.readUByte(addr)
             }
         }
         status.updateZN(value)
@@ -294,17 +304,17 @@ object CPU {
         val carry = status[Flag.CARRY]
         val value = when (addressMode) {
             AddressMode.NoneAddressing -> {
-                status[Flag.CARRY] = (a and 0b1000_0000u) != 0.toUByte()
+                status.setStatus(Flag.CARRY, (a and 0b1000_0000u) != 0.toUByte())
                 a = (a.toInt() shl 1).toUByte()
                 if (carry) a = a or 0b0000_0001u
                 a
             }
             else -> {
                 val addr = getOperandAddress(addressMode)
-                status[Flag.CARRY] = (memory[addr] and 0b1000_0000u) != 0.toUByte()
-                memory[addr] = (memory[addr].toInt() shl 1).toUByte()
-                if (carry) memory[addr] = memory[addr] or 0b0000_0001u
-                memory[addr]
+                status.setStatus(Flag.CARRY, (memory.readUByte(addr) and 0b1000_0000u) != 0.toUByte())
+                memory.writeUByte(addr, (memory.readUByte(addr).toInt() shl 1).toUByte())
+                if (carry) memory.writeUByte(addr, memory.readUByte(addr) or 0b0000_0001u)
+                memory.readUByte(addr)
             }
         }
         status.updateZN(value)
@@ -314,17 +324,17 @@ object CPU {
         val carry = status[Flag.CARRY]
         val value = when (addressMode) {
             AddressMode.NoneAddressing -> {
-                status[Flag.CARRY] = (a and 1u) != 0.toUByte()
+                status.setStatus(Flag.CARRY, (a and 1u) != 0.toUByte())
                 a = (a.toInt() shr 1).toUByte()
                 if (carry) a = a or 0b1000_0000u
                 a
             }
             else -> {
                 val addr = getOperandAddress(addressMode)
-                status[Flag.CARRY] = (memory[addr] and 1u) != 0.toUByte()
-                memory[addr] = (memory[addr].toInt() shr 1).toUByte()
-                if (carry) memory[addr] = memory[addr] or 0b1000_0000u
-                memory[addr]
+                status.setStatus(Flag.CARRY, (memory.readUByte(addr) and 1u) != 0.toUByte())
+                memory.writeUByte(addr, (memory.readUByte(addr).toInt() shr 1).toUByte())
+                if (carry) memory.writeUByte(addr, memory.readUByte(addr) or 0b1000_0000u)
+                memory.readUByte(addr)
             }
         }
         status.updateZN(value)
@@ -332,19 +342,17 @@ object CPU {
 
     private fun jmp(addressMode: AddressMode) {
         val addr = getOperandAddress(addressMode)
-//        pc = memory.readUShort(addr)
         pc = addr
     }
 
     private fun jsr(addressMode: AddressMode) {
         val jumpAddr = getOperandAddress(addressMode)
-//        val jumpAddr = memory.readUShort(addr)
         val retAddr = pc + 1u
 
 //        printAddr("sp", sp.toInt())
 //        printAddr("jumpAddr", jumpAddr.toInt())
 
-        memory[(0x100u + sp).toUShort()] = retAddr.toUShort()
+        memory.writeUShort((0x100u + sp).toUShort(), retAddr.toUShort())
         sp--
         sp--
         pc = jumpAddr
@@ -376,17 +384,17 @@ object CPU {
 //        pc.set(memory.readUnsignedShort(0xFFFE))
 //        // side effect of brk is set I to 1
 //        status.setI()
-        memory.writeUnsignedShort((sp + 0x100u).toUShort(), pc)
+        memory.writeUShort((sp + 0x100u).toUShort(), pc)
         sp--
-        memory[(sp + 0x100u).toUShort()] = status.toUByte() or 0b0011_0000u
+        memory.writeUByte((sp + 0x100u).toUShort(), status.toUByte() or 0b0011_0000u)
         sp--
         pc = 0xFFFEu
-        status[Flag.INTERRUPT_DISABLE] = true
+        status.setStatus(Flag.INTERRUPT_DISABLE, true)
     }
 
     private fun rti() {
         sp--
-        status.invoke(memory[(sp + 0x100u).toUShort()])
+        status(memory.readUByte((sp + 0x100u).toUShort()))
         sp--
         pc = memory.readUShort((sp + 0x100u).toUShort())
     }
@@ -453,22 +461,22 @@ object CPU {
                 0x20u -> jsr(opcode.mode)
                 0x60u -> rts()
                 // branches
-                0x90u -> if (!status[Flag.CARRY]) branch()
-                0xB0u -> if (status[Flag.CARRY]) branch()
-                0xD0u -> if (!status[Flag.ZERO]) branch()
-                0xF0u -> if (status[Flag.ZERO]) branch()
-                0x10u -> if (!status[Flag.NEGATIVE]) branch()
-                0x30u -> if (status[Flag.NEGATIVE]) branch()
-                0x50u -> if (!status[Flag.OVERFLOW]) branch()
-                0x70u -> if (status[Flag.OVERFLOW]) branch()
+                0x90u -> if (!status.getStatus(Flag.CARRY)) branch()
+                0xB0u -> if (status.getStatus(Flag.CARRY)) branch()
+                0xD0u -> if (!status.getStatus(Flag.ZERO)) branch()
+                0xF0u -> if (status.getStatus(Flag.ZERO)) branch()
+                0x10u -> if (!status.getStatus(Flag.NEGATIVE)) branch()
+                0x30u -> if (status.getStatus(Flag.NEGATIVE)) branch()
+                0x50u -> if (!status.getStatus(Flag.OVERFLOW)) branch()
+                0x70u -> if (status.getStatus(Flag.OVERFLOW)) branch()
                 // status
-                0x18u -> status[Flag.CARRY] = false
-                0xD8u -> status[Flag.DECIMAL_MODE] = false
-                0x58u -> status[Flag.INTERRUPT_DISABLE] = false
-                0xB8u -> status[Flag.OVERFLOW] = false
-                0x38u -> status[Flag.CARRY] = true
-                0xF8u -> status[Flag.DECIMAL_MODE] = true
-                0x78u -> status[Flag.INTERRUPT_DISABLE] = true
+                0x18u -> status.setStatus(Flag.CARRY, false)
+                0xD8u -> status.setStatus(Flag.DECIMAL_MODE, false)
+                0x58u -> status.setStatus(Flag.INTERRUPT_DISABLE, false)
+                0xB8u -> status.setStatus(Flag.OVERFLOW, false)
+                0x38u -> status.setStatus(Flag.CARRY, true)
+                0xF8u -> status.setStatus(Flag.DECIMAL_MODE, true)
+                0x78u -> status.setStatus(Flag.INTERRUPT_DISABLE, true)
                 // system functions: nop, brk, rti
                 0xEAu -> {
                 } // nop

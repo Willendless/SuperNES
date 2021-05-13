@@ -20,7 +20,11 @@ object PStatus {
 
     operator fun get(i: Flag) = (reg and i.mask) != 0.toUByte()
 
-    operator fun set(i: Flag, b: Boolean) {
+    operator fun invoke(i: UByte) {
+        reg = i
+    }
+
+    fun setStatus(i: Flag, b: Boolean) {
         reg = if (b) {
             reg or i.mask
         } else {
@@ -28,13 +32,11 @@ object PStatus {
         }
     }
 
-    operator fun invoke(i: UByte) {
-        reg = i
-    }
+    fun getStatus(i: Flag) = (reg and i.mask) != 0.toUByte()
 
     // ENSURES: update Z, N flags based on other
     fun updateZN(other: UByte) {
-        this[Flag.ZERO] = other == 0.toUByte()
-        this[Flag.NEGATIVE] = (other and 0b1000_0000u) != 0.toUByte()
+        setStatus(Flag.ZERO, other == 0.toUByte())
+        setStatus(Flag.NEGATIVE, (other and 0b1000_0000u) != 0.toUByte())
     }
 }
