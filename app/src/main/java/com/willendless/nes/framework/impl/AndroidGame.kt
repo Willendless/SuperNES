@@ -63,6 +63,11 @@ abstract class AndroidGame: AppCompatActivity(), Game {
             screen.dispose()
     }
 
+    override fun onDestroy() {
+        super.onDestroy()
+        screen.destroy()
+    }
+
     override fun getFileIO(): FIleIO = fileIO
 
     override fun getGraphics(): Graphics = graphics

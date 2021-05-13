@@ -26,4 +26,7 @@ class LoadingScreen(game: Game): Screen(game) {
 
     override fun dispose() {
     }
+
+    override fun destroy() {
+    }
 }

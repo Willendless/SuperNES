@@ -21,14 +21,14 @@ class CPUTest {
         val program = ubyteArrayOf(0xa9u, 0x05u, 0x00u)
         cpu.loadAndRun(program)
         assertEquals(0x05.toUByte(), cpu.a)
-        assertFalse(cpu.status[Flag.ZERO])
-        assertFalse(cpu.status[Flag.NEGATIVE])
+        assertFalse(cpu.status.getStatus(Flag.ZERO))
+        assertFalse(cpu.status.getStatus(Flag.NEGATIVE))
     }
 
     @Test fun test_lda_zero_flag() {
         val program = ubyteArrayOf(0xa9u, 0x00u, 0x00u)
         cpu.loadAndRun(program)
-        assertTrue(cpu.status[Flag.ZERO])
+        assertTrue(cpu.status.getStatus(Flag.ZERO))
     }
 
     @Test fun test_lda_zero_page() {
@@ -126,7 +126,7 @@ class CPUTest {
         cpu.loadAndRun(program)
         assertEquals(0.toUByte(), cpu.y)
         assertEquals(0.toUByte(), cpu.a)
-        assertTrue(cpu.status[Flag.ZERO])
+        assertTrue(cpu.status.getStatus(Flag.ZERO))
     }
 
     @Test fun test_tya_neg() {
@@ -134,14 +134,14 @@ class CPUTest {
         cpu.loadAndRun(program)
         assertEquals(0xff.toUByte(), cpu.y)
         assertEquals(0xff.toUByte(), cpu.a)
-        assertTrue(cpu.status[Flag.NEGATIVE])
+        assertTrue(cpu.status.getStatus(Flag.NEGATIVE))
     }
 
     @Test fun test_pha_pla() {
         val program = ubyteArrayOf(0xa9u, 0xffu, 0x48u, 0xa9u, 0x00u, 0x68u, 0x00u)
         cpu.loadAndRun(program)
         assertEquals(0xff.toUByte(), cpu.a)
-        assertTrue(cpu.status[Flag.NEGATIVE])
+        assertTrue(cpu.status.getStatus(Flag.NEGATIVE))
     }
 
     @Test fun test_and() {
@@ -149,8 +149,8 @@ class CPUTest {
         val program = ubyteArrayOf(0xa9u, 0xffu, 0x25u, 0x00u, 0x00u)
         cpu.loadAndRun(program)
         assertEquals(1.toUByte(), cpu.a)
-        assertFalse(cpu.status[Flag.NEGATIVE])
-        assertFalse(cpu.status[Flag.ZERO])
+        assertFalse(cpu.status.getStatus(Flag.NEGATIVE))
+        assertFalse(cpu.status.getStatus(Flag.ZERO))
     }
 
     @Test fun test_ora() {
@@ -158,8 +158,8 @@ class CPUTest {
         val program = ubyteArrayOf(0xa9u, 0xf0u, 0x05u, 0x00u, 0x00u)
         cpu.loadAndRun(program)
         assertEquals(0xf1.toUByte(), cpu.a)
-        assertTrue(cpu.status[Flag.NEGATIVE])
-        assertFalse(cpu.status[Flag.ZERO])
+        assertTrue(cpu.status.getStatus(Flag.NEGATIVE))
+        assertFalse(cpu.status.getStatus(Flag.ZERO))
     }
 
     @Test fun test_eor() {
@@ -167,8 +167,8 @@ class CPUTest {
         val program = ubyteArrayOf(0xa9u, 0xf0u, 0x45u, 0x00u, 0x00u)
         cpu.loadAndRun(program)
         assertEquals(0xf1.toUByte(), cpu.a)
-        assertTrue(cpu.status[Flag.NEGATIVE])
-        assertFalse(cpu.status[Flag.ZERO])
+        assertTrue(cpu.status.getStatus(Flag.NEGATIVE))
+        assertFalse(cpu.status.getStatus(Flag.ZERO))
     }
 
     @Test fun test_inx_iny() {

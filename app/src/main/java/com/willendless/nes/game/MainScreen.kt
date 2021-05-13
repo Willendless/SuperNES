@@ -23,4 +23,8 @@ class MainScreen(game: Game): Screen(game) {
     override fun dispose() {
         TODO("Not yet implemented")
     }
+
+    override fun destroy() {
+        TODO("Not yet implemented")
+    }
 }
