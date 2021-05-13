@@ -63,7 +63,9 @@ object CPU {
             AddressMode.AbsoluteY -> (memory.readUShort(pc) + y).toUShort()
             AddressMode.Indirect -> memory.readUShort(memory.readUShort(pc))
             AddressMode.IndirectX -> memory.readUShort((memory.readUByte(pc) + x).toUShort())
-            AddressMode.IndirectY -> (memory.readUShort(memory.readUByte(pc).toUShort()) + y).toUShort()
+            AddressMode.IndirectY -> (memory.readUShort(
+                memory.readUByte(pc).toUShort()
+            ) + y).toUShort()
             AddressMode.NoneAddressing -> unreachable("$mode not supported")
         }
     }
@@ -139,8 +141,10 @@ object CPU {
     private fun php() {
         // https://wiki.nesdev.com/w/index.php/CPU_status_flag_behavior
         val addr = (0x100u + sp--).toUShort()
-        memory.writeUByte(addr,
-        status.toUByte() or Flag.BREAK.mask or Flag.BREAK2.mask)
+        memory.writeUByte(
+            addr,
+            status.toUByte() or Flag.BREAK.mask or Flag.BREAK2.mask
+        )
     }
 
     private fun pla() {
@@ -189,8 +193,11 @@ object CPU {
         val sum = a + memory.readUByte(addr) + if (status[Flag.CARRY]) 1u else 0u
         status.apply {
             setStatus(Flag.CARRY, sum > UByte.MAX_VALUE)
-            setStatus(Flag.OVERFLOW,
-                    (memory.readUByte(addr).toUInt() xor sum) and (a.toUInt() xor sum) and 0b1000_0000u != 0u)
+            setStatus(
+                Flag.OVERFLOW,
+                (memory.readUByte(addr)
+                    .toUInt() xor sum) and (a.toUInt() xor sum) and 0b1000_0000u != 0u
+            )
         }
         a = sum.toUByte()
         PStatus.updateZN(a)
@@ -201,8 +208,11 @@ object CPU {
         val diff = a - memory.readUByte(addr) - if (status[Flag.CARRY]) 0u else 1u
         status.apply {
             setStatus(Flag.CARRY, diff > UByte.MAX_VALUE)
-            setStatus(Flag.OVERFLOW,
-                    (memory.readUByte(addr).toUInt() xor diff) and (a.toUInt() xor diff) and 0b1000_0000u != 0u)
+            setStatus(
+                Flag.OVERFLOW,
+                (memory.readUByte(addr)
+                    .toUInt() xor diff) and (a.toUInt() xor diff) and 0b1000_0000u != 0u
+            )
         }
         a = diff.toUByte()
         status.updateZN(a)
@@ -275,7 +285,10 @@ object CPU {
             }
             else -> {
                 val addr = getOperandAddress(addressMode)
-                status.setStatus(Flag.CARRY, (memory.readUByte(addr) and 0b1000_0000u) != 0.toUByte())
+                status.setStatus(
+                    Flag.CARRY,
+                    (memory.readUByte(addr) and 0b1000_0000u) != 0.toUByte()
+                )
                 memory.writeUByte(addr, (memory.readUByte(addr).toUInt() shl 1).toUByte())
                 memory.readUByte(addr)
             }
@@ -311,7 +324,10 @@ object CPU {
             }
             else -> {
                 val addr = getOperandAddress(addressMode)
-                status.setStatus(Flag.CARRY, (memory.readUByte(addr) and 0b1000_0000u) != 0.toUByte())
+                status.setStatus(
+                    Flag.CARRY,
+                    (memory.readUByte(addr) and 0b1000_0000u) != 0.toUByte()
+                )
                 memory.writeUByte(addr, (memory.readUByte(addr).toInt() shl 1).toUByte())
                 if (carry) memory.writeUByte(addr, memory.readUByte(addr) or 0b0000_0001u)
                 memory.readUByte(addr)

@@ -5,12 +5,17 @@ import com.willendless.nes.emulator.Flag
 import org.junit.Assert.assertTrue
 import org.junit.Assert.assertFalse
 import org.junit.Assert.assertEquals
+import org.junit.Before
 import org.junit.Test
 
 @ExperimentalStdlibApi
 @ExperimentalUnsignedTypes
 class CPUTest {
     private val cpu = CPU
+
+    @Before fun setup() {
+        cpu.memory.clear()
+    }
 
     @Test fun test_lda_immediate_load_data() {
         val program = ubyteArrayOf(0xa9u, 0x05u, 0x00u)
@@ -19,7 +24,7 @@ class CPUTest {
         assertFalse(cpu.status[Flag.ZERO])
         assertFalse(cpu.status[Flag.NEGATIVE])
     }
-    
+
     @Test fun test_lda_zero_flag() {
         val program = ubyteArrayOf(0xa9u, 0x00u, 0x00u)
         cpu.loadAndRun(program)
@@ -184,5 +189,21 @@ class CPUTest {
 
     @Test fun test_sbc() {
 
+    }
+
+    @Test fun test_klaus2m5() {
+        val firmware = java.io.File("firmware/6502_functional_test.bin")
+        val program = firmware.readBytes().toUByteArray()
+
+        // http://forum.6502.org/viewtopic.php?f=8&t=5298
+        cpu.memory.populate(program, 0x0000)
+        cpu.a = 0u
+        cpu.x = 0u
+        cpu.y = 0u
+        cpu.sp = 0xffu
+        cpu.pc = 0x0400u
+        cpu.status(0u)
+        cpu.run()
+        assertEquals(0x3399, cpu.pc)
     }
 }

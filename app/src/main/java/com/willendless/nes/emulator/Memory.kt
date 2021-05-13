@@ -7,6 +7,10 @@ data class Memory(val size: Int = 0x10000) {
 
 //    operator fun get(addr: UShort): UByte = mem[addr.toInt()]
 
+    fun clear() {
+        mem.fill(0u)
+    }
+
     fun readUShort(addr: UShort): UShort {
         val lo = mem[addr.toInt()]
         val hi = mem[addr.toInt() + 1]
