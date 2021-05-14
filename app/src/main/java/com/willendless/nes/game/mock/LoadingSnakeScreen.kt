@@ -49,7 +49,4 @@ class LoadingSnakeScreen(game: Game): Screen(game) {
 
     override fun dispose() {
     }
-
-    override fun destroy() {
-    }
 }

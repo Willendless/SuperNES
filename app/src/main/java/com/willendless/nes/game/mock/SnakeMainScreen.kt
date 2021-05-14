@@ -71,9 +71,6 @@ class SnakeMainScreen(game: Game): Screen(game) {
     }
 
     override fun dispose() {
-    }
-
-    override fun destroy() {
         CPU.memory.clear()
     }
 }

@@ -12,5 +12,4 @@ abstract class Screen(val game: Game) {
     abstract fun pause()
     abstract fun resume()
     abstract fun dispose()
-    abstract fun destroy()
 }
