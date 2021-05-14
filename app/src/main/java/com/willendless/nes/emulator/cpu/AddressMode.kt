@@ -1,4 +1,4 @@
-package com.willendless.nes.emulator
+package com.willendless.nes.emulator.cpu
 
 enum class AddressMode {
     Immediate,

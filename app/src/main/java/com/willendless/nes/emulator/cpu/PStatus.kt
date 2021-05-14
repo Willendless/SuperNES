@@ -1,4 +1,4 @@
-package com.willendless.nes.emulator
+package com.willendless.nes.emulator.cpu
 
 @ExperimentalUnsignedTypes
 enum class Flag(val mask: UByte) {

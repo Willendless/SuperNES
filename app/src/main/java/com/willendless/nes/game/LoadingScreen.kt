@@ -1,9 +1,7 @@
 package com.willendless.nes.game
 
-import com.willendless.nes.emulator.CPU
 import com.willendless.nes.framework.Game
 import com.willendless.nes.framework.Screen
-import com.willendless.nes.game.mock.SnakeMainScreen
 
 // This class mainly initializes game assets and CPU.
 // Then we will transit to the MainScreen according to game name.

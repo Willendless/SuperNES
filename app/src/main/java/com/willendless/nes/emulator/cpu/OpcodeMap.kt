@@ -1,15 +1,12 @@
-package com.willendless.nes.emulator
+package com.willendless.nes.emulator.cpu
 
-import android.os.Build
-import androidx.annotation.RequiresApi
-import com.willendless.nes.emulator.AddressMode.*
-
-
-@ExperimentalUnsignedTypes
-data class Opcode(val code: UByte = 0u, val name: String = "Unknown", val len: UShort = 0u, val mode: AddressMode = NoneAddressing)
+import com.willendless.nes.emulator.cpu.AddressMode.*
 
 @ExperimentalUnsignedTypes
 object OpcodeMap {
+    @ExperimentalUnsignedTypes
+    data class Opcode(val code: UByte = 0u, val name: String = "Unknown", val len: UShort = 0u, val mode: AddressMode = NoneAddressing)
+
     private val opcodesList = arrayListOf<Opcode>(
             Opcode(0xe8u, "INX", 1u, NoneAddressing),
             // LDA
