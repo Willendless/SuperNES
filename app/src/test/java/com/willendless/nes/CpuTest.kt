@@ -18,9 +18,17 @@ class CPUTest {
         Bus.clear()
     }
 
-    private fun loadAndRun(program: UByteArray) {
-        CPU.load(program, 0x500)
-        CPU.reset(0x500u)
+    private fun loadAndRun(program: UByteArray, offset: Int = 0x500) {
+        CPU.load(program, offset)
+        CPU.reset(offset.toUShort())
+        CPU.run()
+    }
+
+    @Test fun test_rom() {
+        val testRom = java.io.File("src/main/assets/testRom/nestest.nes")
+        val program = testRom.readBytes().toUByteArray()
+        Bus.populate(program, 0xc000)
+        CPU.reset(0xc000u)
         CPU.run()
     }
 
