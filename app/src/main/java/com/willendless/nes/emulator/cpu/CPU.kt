@@ -476,7 +476,7 @@ object CPU {
             3 -> os.print("%02X %02X  ".format(peekCode().toInt(), peekpeekCode().toInt()))
             else -> unreachable("invalid opcode length")
         }
-        os.print("%-33s".format(disAssemble(opcode)))
+        os.print("%-32s".format(disAssemble(opcode)))
         os.println("A:%02X X:%02X Y:%02X P:%02X SP:%02X".format(a.toInt(), x.toInt(), y.toInt(), status.get().toInt(), sp.toInt()))
     }
 
