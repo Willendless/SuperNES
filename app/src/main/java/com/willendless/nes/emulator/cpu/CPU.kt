@@ -3,6 +3,8 @@ package com.willendless.nes.emulator.cpu
 import com.willendless.nes.emulator.Bus
 import com.willendless.nes.emulator.Mem
 import com.willendless.nes.emulator.util.unreachable
+import java.io.OutputStream
+import java.io.PrintStream
 import java.lang.StringBuilder
 
 @ExperimentalStdlibApi
@@ -466,20 +468,20 @@ object CPU {
         return builder.toString()
     }
 
-    private fun traceCPUState(opcode: OpcodeMap.Opcode) {
-        print("%-6X%-3X".format(pc.toInt() - 1, opcode.code.toInt()))
+    private fun traceCPUState(opcode: OpcodeMap.Opcode, os: PrintStream) {
+        os.print("%-6X%-3X".format(pc.toInt() - 1, opcode.code.toInt()))
         when (opcode.len.toInt()) {
-            1 -> print("%7c".format(' '))
-            2 -> print("%02X %4c".format(peekCode().toInt(), ' '))
-            3 -> print("%02X %02X  ".format(peekCode().toInt(), peekpeekCode().toInt()))
+            1 -> os.print("%7c".format(' '))
+            2 -> os.print("%02X %4c".format(peekCode().toInt(), ' '))
+            3 -> os.print("%02X %02X  ".format(peekCode().toInt(), peekpeekCode().toInt()))
             else -> unreachable("invalid opcode length")
         }
-        print("%-33s".format(disAssemble(opcode)))
-        println("A:%02X X:%02X Y:%02X P:%02X SP:%02X".format(a.toInt(), x.toInt(), y.toInt(), status.get().toInt(), sp.toInt()))
+        os.print("%-33s".format(disAssemble(opcode)))
+        os.println("A:%02X X:%02X Y:%02X P:%02X SP:%02X".format(a.toInt(), x.toInt(), y.toInt(), status.get().toInt(), sp.toInt()))
     }
 
     // Run game in the memory begin from 0x8000.
-    fun run(timeoutMs: Long = 10_000, maxStep: Long = 10_000) {
+    fun run(timeoutMs: Long = 10_000, maxStep: Long = 10_000, os: PrintStream? = null) {
         var curStep = 0
         val startTime = System.nanoTime() / 1000_000
         while (true) {
@@ -494,7 +496,7 @@ object CPU {
             val curPc = pc
 
             // TODO: maybe don't increase pc in `fetchCode`?
-            traceCPUState(opcode)
+            if (os != null) traceCPUState(opcode, os)
 
             // TODO: reflection with `getDeclaredField`?
             when (opcode.code.toUInt()) {

@@ -10,7 +10,7 @@ import org.junit.Assert.assertEquals
 import org.junit.Before
 import org.junit.After
 import org.junit.Test
-import org.junit.rules.ExpectedException
+import java.io.PrintStream
 
 @ExperimentalStdlibApi
 @ExperimentalUnsignedTypes
@@ -34,11 +34,13 @@ class CPUTest {
 
     @Test fun test_rom() {
         val testRom = java.io.File("src/main/assets/testRom/nestest.nes")
+        val fileOutputStream = PrintStream(java.io.File("src/main/assets/testRom/nestest.out"))
         val program = testRom.readBytes().toUByteArray()
         cpu.switchBus(Bus)
         cpu.bus.populate(program, 0xc000)
         CPU.reset(0xc000u)
-        CPU.run()
+        CPU.run(os = fileOutputStream)
+        fileOutputStream.close()
     }
 
     @Test fun test_lda_immediate_load_data() {
