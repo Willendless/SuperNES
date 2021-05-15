@@ -32,17 +32,6 @@ class CPUTest {
         CPU.run()
     }
 
-    @Test fun test_rom() {
-        val testRom = java.io.File("src/main/assets/testRom/nestest.nes")
-        val fileOutputStream = PrintStream(java.io.File("src/main/assets/testRom/nestest.out"))
-        val program = testRom.readBytes().toUByteArray()
-        cpu.switchBus(Bus)
-        cpu.bus.populate(program, 0xc000)
-        CPU.reset(0xc000u)
-        CPU.run(os = fileOutputStream)
-        fileOutputStream.close()
-    }
-
     @Test fun test_lda_immediate_load_data() {
         val program = ubyteArrayOf(0xa9u, 0x05u, 0x00u)
         loadAndRun(program)
@@ -209,14 +198,6 @@ class CPUTest {
         assertEquals(1.toUByte(), cpu.x)
     }
 
-    @Test fun test_adc() {
-
-    }
-
-    @Test fun test_sbc() {
-
-    }
-
     @Test fun test_klaus2m5() {
         val firmware = java.io.File("firmware/6502_F~1.BIN")
         val program = firmware.readBytes().toUByteArray()
@@ -235,4 +216,21 @@ class CPUTest {
         // Check `cpu.pc` to see if it's stuck in some trap, i.e. infinite loop
         assertEquals("?", "%04x".format(cpu.pc.toInt()))
     }
+
+    @Test fun test_rom() {
+        val testRom = java.io.File("src/main/assets/testRom/nestest.nes")
+        val fileOutputStream = PrintStream(java.io.File("src/main/assets/testRom/nestest.out"))
+        val program = testRom.readBytes().toUByteArray()
+        cpu.switchBus(Bus)
+        cpu.bus.populate(program, 0xc000)
+        cpu.a = 0u
+        cpu.x = 0u
+        cpu.y = 0u
+        cpu.status(0x24u)
+        cpu.sp = 0xfdu
+        cpu.pc = 0xc000u
+        CPU.run(os = fileOutputStream)
+        fileOutputStream.close()
+    }
+
 }
