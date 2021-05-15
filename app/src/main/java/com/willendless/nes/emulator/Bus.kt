@@ -25,7 +25,7 @@ object Bus: Mem {
         in PRG_ROM_BASE..PRG_ROM_END -> {
             rom?.apply {
                 var address = addr - 0x8000u
-                if (getPrgRomLen() == 0x4000 && address > 0x4000u)
+                if (getPrgRomLen() == 0x4000 && address >= 0x4000u)
                     address %= 0x4000u
                 return prgRom[address.toInt()]
             }
