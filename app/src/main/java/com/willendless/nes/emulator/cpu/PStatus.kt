@@ -30,6 +30,8 @@ object PStatus {
         }
     }
 
+    fun get() = reg
+
     fun getStatus(i: Flag) = (reg and i.mask) != 0.toUByte()
 
     // ENSURES: update Z, N flags based on other
