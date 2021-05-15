@@ -1,12 +1,14 @@
 package com.willendless.nes
 
 import com.willendless.nes.emulator.Bus
+import com.willendless.nes.emulator.RawBus
 import com.willendless.nes.emulator.cpu.CPU
 import com.willendless.nes.emulator.cpu.Flag
 import org.junit.Assert.assertTrue
 import org.junit.Assert.assertFalse
 import org.junit.Assert.assertEquals
 import org.junit.Before
+import org.junit.After
 import org.junit.Test
 
 @ExperimentalStdlibApi
@@ -15,7 +17,12 @@ class CPUTest {
     private val cpu = CPU
 
     @Before fun setup() {
-        Bus.clear()
+        cpu.switchBus(RawBus)
+        cpu.bus.clear()
+    }
+
+    @After fun tearDown() {
+        cpu.switchBus(Bus)
     }
 
     private fun loadAndRun(program: UByteArray, offset: Int = 0x500) {
@@ -207,18 +214,21 @@ class CPUTest {
     }
 
     @Test fun test_klaus2m5() {
-        val firmware = java.io.File("firmware/6502_functional_test.bin")
+        val firmware = java.io.File("firmware/6502_F~1.BIN")
         val program = firmware.readBytes().toUByteArray()
 
         // http://forum.6502.org/viewtopic.php?f=8&t=5298
-        Bus.populate(program, 0x0000)
+        cpu.bus.populate(program, 0x0000)
         cpu.a = 0u
         cpu.x = 0u
         cpu.y = 0u
         cpu.sp = 0xffu
         cpu.pc = 0x0400u
         cpu.status(0u)
-        cpu.run()
-        assertEquals(0x3399, cpu.pc)
+        cpu.run(maxStep = 50000)
+
+        // This will ALWAYS fail
+        // Check `cpu.pc` to see if it's stuck in some trap, i.e. infinite loop
+        assertEquals("?", "%04x".format(cpu.pc.toInt()))
     }
 }

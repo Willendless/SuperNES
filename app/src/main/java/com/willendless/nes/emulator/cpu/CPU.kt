@@ -1,8 +1,7 @@
 package com.willendless.nes.emulator.cpu
 
-import android.os.Build
-import androidx.annotation.RequiresApi
 import com.willendless.nes.emulator.Bus
+import com.willendless.nes.emulator.Mem
 import com.willendless.nes.emulator.unreachable
 
 @ExperimentalStdlibApi
@@ -15,7 +14,11 @@ object CPU {
     var pc: UShort = 0u
     var sp: UByte = 0u
     val status = PStatus
-    private val bus = Bus
+    var bus: Mem = Bus
+
+    fun switchBus(alternative: Mem) {
+        bus = alternative
+    }
 
     fun load(program: UByteArray, offset: Int) {
         // insert cartridge
@@ -120,8 +123,8 @@ object CPU {
     }
 
     private fun txa() {
-        a = sp
-        PStatus.updateZN(a)
+        a = x
+        status.updateZN(a)
     }
 
     private fun txs() {
@@ -387,7 +390,7 @@ object CPU {
     }
 
     private fun printAddr(head: String, addr: Int) {
-        println("$head addr: ${java.lang.Integer.toHexString(addr.toInt())}")
+        println("$head addr: ${Integer.toHexString(addr)}")
     }
 
     private fun branch() {
@@ -419,17 +422,19 @@ object CPU {
     }
 
     // Run game in the memory begin from 0x8000.
-    fun run(timeout_ms: Long = 10_000) {
+    fun run(timeoutMs: Long = 10_000, maxStep: Long = 10_000) {
+        var curStep = 0
         val startTime = System.nanoTime() / 1000_000
         while (true) {
             val curTime = System.nanoTime() / 1000_000
-            if (curTime - startTime > timeout_ms) break
+            if (curTime - startTime > timeoutMs || curStep >= maxStep)
+                break
+
+            curStep += 1
 
             val code = fetchCode()
             val opcode = OpcodeMap.getOpcode(code)
             val curPc = pc
-
-//            println("[0x${java.lang.Integer.toHexString(pc.toInt() - 1)}]: $opcode")
 
             // TODO: reflection with `getDeclaredField`?
             when (opcode.code.toUInt()) {
@@ -506,6 +511,10 @@ object CPU {
                 }
                 else -> unreachable("unreachable code")
             }
+
+            // TODO: maybe don't increase pc in `fetchCode`?
+            println("pc=%04x,sp=%04x,a=%02x,x=%02x,y=%02x,opcode=%s".format(pc.toInt() - 1, sp.toInt(), a.toInt(), x.toInt(), y.toInt(), opcode))
+
             if (curPc == pc) {
                 pc = (pc + opcode.len - 1u).toUShort()
             }
