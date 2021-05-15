@@ -2,7 +2,10 @@ package com.willendless.nes.emulator.cpu
 
 import com.willendless.nes.emulator.Bus
 import com.willendless.nes.emulator.Mem
-import com.willendless.nes.emulator.unreachable
+import com.willendless.nes.emulator.util.unreachable
+import java.io.OutputStream
+import java.io.PrintStream
+import java.lang.StringBuilder
 
 @ExperimentalStdlibApi
 @ExperimentalUnsignedTypes
@@ -52,6 +55,8 @@ object CPU {
     // No side effect.
     private fun peekCode(): UByte = bus.readUByte(pc)
 
+    private fun peekpeekCode(): UByte = bus.readUByte((pc + 1u).toUShort())
+
     // Return operand according to addressing mode.
     // No side effect to pc or any other registers.
     // REQUIRES: before called, pc should point to the second byte of the instruction.
@@ -70,6 +75,7 @@ object CPU {
             AddressMode.IndirectY -> (bus.readUShort(
                 bus.readUByte(pc).toUShort()
             ) + y).toUShort()
+            AddressMode.Relative -> (peekCode() + 1u).toUShort()
             AddressMode.NoneAddressing -> unreachable("$mode not supported")
         }
     }
@@ -421,8 +427,61 @@ object CPU {
         pc = bus.readUShort((sp + 0x100u).toUShort())
     }
 
+    private fun disAssemble(opcode: OpcodeMap.Opcode): String {
+        val builder = if (opcode.mode == AddressMode.NoneAddressing) {
+            return opcode.name
+        } else {
+            StringBuilder(opcode.name).append(" ")
+        }
+
+        val a1: Int = peekCode().toInt()
+        val a2: Int = peekpeekCode().toInt()
+        val address: UShort = getOperandAddress(opcode.mode)
+        val operandUByte: Int = bus.readUByte(address).toInt()
+        val operandUShort: Int = bus.readUShort(address).toInt()
+        val addr: Int = address.toInt()
+        when (opcode.mode) {
+            AddressMode.Immediate -> builder.append("#$").append("%02X".format(a1))
+            AddressMode.ZeroPage -> builder.append("$%02X ".format(a1))
+                    .append("= %02X".format(operandUByte))
+            AddressMode.ZeroPageX -> builder.append("$%02X".format(a1))
+                    .append(",X ").append("@ %02X = %02X".format(addr, operandUByte))
+            AddressMode.ZeroPageY -> builder.append("$%02X".format(a1))
+                    .append(",Y ").append("@ %02X = %02X".format(addr, operandUByte))
+            AddressMode.Absolute -> {
+                builder.append("$%04X".format(addr.toInt()))
+                if (opcode.name != "JMP" && opcode.name != "JSR") builder.append("= %02X".format(operandUByte))
+            }
+            AddressMode.AbsoluteX -> builder.append("$%02X%02X".format(a2, a1))
+                    .append(",X ").append("@ %04X = %02X".format(addr, operandUByte))
+            AddressMode.AbsoluteY -> builder.append("$%02X%02X".format(a2, a1))
+                    .append(",Y ").append("@ %04X = %2X".format(addr, operandUByte))
+            AddressMode.Indirect -> builder.append("($%02X%02X) ".format(a1, a2))
+                    .append("= %04X".format(operandUShort))
+            AddressMode.IndirectX -> builder.append("($%02X,X) ".format(a1))
+                    .append("@ %02X = %04X = %02X".format((x + peekCode()).toInt(), addr, operandUShort))
+            AddressMode.IndirectY -> builder.append("($%02X,Y) ".format(a1))
+                    .append("= %04X @ %04X = %02X".format(bus.readUShort(peekCode().toUShort()).toInt(), addr, operandUShort))
+            AddressMode.Relative -> builder.append("$%02X".format(a1))
+            AddressMode.NoneAddressing -> unreachable("code should not reach here")
+        }
+        return builder.toString()
+    }
+
+    private fun traceCPUState(opcode: OpcodeMap.Opcode, os: PrintStream) {
+        os.print("%-6X%-3X".format(pc.toInt() - 1, opcode.code.toInt()))
+        when (opcode.len.toInt()) {
+            1 -> os.print("%7c".format(' '))
+            2 -> os.print("%02X %4c".format(peekCode().toInt(), ' '))
+            3 -> os.print("%02X %02X  ".format(peekCode().toInt(), peekpeekCode().toInt()))
+            else -> unreachable("invalid opcode length")
+        }
+        os.print("%-32s".format(disAssemble(opcode)))
+        os.println("A:%02X X:%02X Y:%02X P:%02X SP:%02X".format(a.toInt(), x.toInt(), y.toInt(), status.get().toInt(), sp.toInt()))
+    }
+
     // Run game in the memory begin from 0x8000.
-    fun run(timeoutMs: Long = 10_000, maxStep: Long = 10_000) {
+    fun run(timeoutMs: Long = 10_000, maxStep: Long = 10_000, os: PrintStream? = null) {
         var curStep = 0
         val startTime = System.nanoTime() / 1000_000
         while (true) {
@@ -435,6 +494,9 @@ object CPU {
             val code = fetchCode()
             val opcode = OpcodeMap.getOpcode(code)
             val curPc = pc
+
+            // TODO: maybe don't increase pc in `fetchCode`?
+            if (os != null) traceCPUState(opcode, os)
 
             // TODO: reflection with `getDeclaredField`?
             when (opcode.code.toUInt()) {
@@ -511,9 +573,6 @@ object CPU {
                 }
                 else -> unreachable("unreachable code")
             }
-
-            // TODO: maybe don't increase pc in `fetchCode`?
-            println("pc=%04x,sp=%04x,a=%02x,x=%02x,y=%02x,opcode=%s".format(pc.toInt() - 1, sp.toInt(), a.toInt(), x.toInt(), y.toInt(), opcode))
 
             if (curPc == pc) {
                 pc = (pc + opcode.len - 1u).toUShort()

@@ -1,5 +1,7 @@
 package com.willendless.nes.emulator
 
+import com.willendless.nes.emulator.util.unreachable
+
 @ExperimentalUnsignedTypes
 @ExperimentalStdlibApi
 object Bus: Mem {
@@ -25,7 +27,7 @@ object Bus: Mem {
         in PRG_ROM_BASE..PRG_ROM_END -> {
             rom?.apply {
                 var address = addr - 0x8000u
-                if (getPrgRomLen() == 0x4000 && address > 0x4000u)
+                if (getPrgRomLen() == 0x4000 && address >= 0x4000u)
                     address %= 0x4000u
                 return prgRom[address.toInt()]
             }

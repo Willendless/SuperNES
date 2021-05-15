@@ -1,8 +1,6 @@
-package com.willendless.nes.emulator
+package com.willendless.nes.emulator.util
 
-import java.lang.Exception
-
-inline fun unreachable(s: String): Nothing = throw Exception("code should not reach here:$s")
+inline fun unreachable(s: String): Nothing = throw NESException("code should not reach here:$s")
 
 inline fun getUnsignedByte(value: Byte) = value.toUInt() and 0xFFu
 
