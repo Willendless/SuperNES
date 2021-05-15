@@ -2,7 +2,7 @@ package com.willendless.nes.emulator.cpu
 
 import com.willendless.nes.emulator.Bus
 import com.willendless.nes.emulator.Mem
-import com.willendless.nes.emulator.unreachable
+import com.willendless.nes.emulator.util.unreachable
 import java.lang.StringBuilder
 
 @ExperimentalStdlibApi

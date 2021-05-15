@@ -1,5 +1,7 @@
 package com.willendless.nes.emulator
 
+import com.willendless.nes.emulator.util.unreachable
+
 @ExperimentalUnsignedTypes
 @ExperimentalStdlibApi
 object Bus: Mem {
