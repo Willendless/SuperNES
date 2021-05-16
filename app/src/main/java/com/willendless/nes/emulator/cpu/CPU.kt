@@ -75,7 +75,7 @@ object CPU {
             AddressMode.IndirectY -> (bus.readUShort(
                 bus.readUByte(pc).toUShort()
             ) + y).toUShort()
-            AddressMode.Relative -> (peekCode() + 1u).toUShort()
+            AddressMode.Relative -> (pc + peekCode() + 1u).toUShort()
             AddressMode.NoneAddressing -> unreachable("$mode not supported")
         }
     }
@@ -449,8 +449,8 @@ object CPU {
             AddressMode.ZeroPageY -> builder.append("$%02X".format(a1))
                     .append(",Y ").append("@ %02X = %02X".format(addr, operandUByte))
             AddressMode.Absolute -> {
-                builder.append("$%04X".format(addr.toInt()))
-                if (opcode.name != "JMP" && opcode.name != "JSR") builder.append("= %02X".format(operandUByte))
+                builder.append("$%04X".format(addr))
+                 if (opcode.name != "JMP" && opcode.name != "JSR") builder.append(" = %02X".format(operandUByte))
             }
             AddressMode.AbsoluteX -> builder.append("$%02X%02X".format(a2, a1))
                     .append(",X ").append("@ %04X = %02X".format(addr, operandUByte))
@@ -462,14 +462,14 @@ object CPU {
                     .append("@ %02X = %04X = %02X".format((x + peekCode()).toInt(), addr, operandUShort))
             AddressMode.IndirectY -> builder.append("($%02X,Y) ".format(a1))
                     .append("= %04X @ %04X = %02X".format(bus.readUShort(peekCode().toUShort()).toInt(), addr, operandUShort))
-            AddressMode.Relative -> builder.append("$%02X".format(a1))
+            AddressMode.Relative -> builder.append("$%04X".format(addr))
             AddressMode.NoneAddressing -> unreachable("code should not reach here")
         }
         return builder.toString()
     }
 
     private fun traceCPUState(opcode: OpcodeMap.Opcode, os: PrintStream) {
-        os.print("%-6X%-3X".format(pc.toInt() - 1, opcode.code.toInt()))
+        os.print("%04X  %02X ".format(pc.toInt() - 1, opcode.code.toInt()))
         when (opcode.len.toInt()) {
             1 -> os.print("%7c".format(' '))
             2 -> os.print("%02X %4c".format(peekCode().toInt(), ' '))
