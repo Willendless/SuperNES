@@ -68,23 +68,20 @@ object CPU {
         AddressMode.Absolute -> bus.readUShort(pc)
         AddressMode.AbsoluteX -> (bus.readUShort(pc) + x).toUShort()
         AddressMode.AbsoluteY -> (bus.readUShort(pc) + y).toUShort()
-        AddressMode.Indirect -> {
-            println("pc: $pc, indirectaddr1: ${Integer.toHexString(bus.readUShort(pc).toInt())}, realaddr: ${Integer.toHexString(bus.readUShort(bus.readUShort(pc)).toInt())}")
-            bus.readUShort(bus.readUShort(pc))
-        }
-        AddressMode.IndirectX -> zeroPageReadUShort((peekCode() + x).toUByte())
-        AddressMode.IndirectY -> (zeroPageReadUShort(peekCode()) + y).toUShort()
+        AddressMode.Indirect -> pageReadUShort(bus.readUShort(pc))
+        AddressMode.IndirectX -> pageReadUShort((peekCode() + x).toUByte().toUShort())
+        AddressMode.IndirectY -> (pageReadUShort(peekCode().toUShort()) + y).toUShort()
         AddressMode.Relative -> (pc + peekCode() + 1u).toUShort()
         AddressMode.Accumulator -> 0u
         AddressMode.NoneAddressing -> unreachable("$mode not supported")
     }
 
-    private fun zeroPageReadUShort(addr: UByte): UShort = if (addr == 0xFFu.toUByte()) {
-        val lo = bus.readUByte(addr.toUShort())
-        val hi = bus.readUByte(0x0u.toUShort())
+    private fun pageReadUShort(addr: UShort): UShort = if (addr.toUByte() == 0xFFu.toUByte()) {
+        val lo = bus.readUByte(addr)
+        val hi = bus.readUByte(addr xor 0xFFu)
         (lo + (hi.toUInt() shl 8)).toUShort()
     } else {
-        bus.readUShort(addr.toUShort())
+        bus.readUShort(addr)
     }
 
     private fun lda(addressMode: AddressMode) {
@@ -477,7 +474,7 @@ object CPU {
             AddressMode.IndirectX -> builder.append("($%02X,X) ".format(a1))
                     .append("@ %02X = %04X = %02X".format((x + peekCode()).toUByte().toInt(), addr, operandUShort))
             AddressMode.IndirectY -> builder.append("($%02X),Y ".format(a1))
-                    .append("= %04X @ %04X = %02X".format(zeroPageReadUShort(peekCode()).toInt(), addr, operandUShort))
+                    .append("= %04X @ %04X = %02X".format(pageReadUShort(peekCode().toUShort()).toInt(), addr, operandUShort))
             AddressMode.Relative -> builder.append("$%04X".format(addr))
             AddressMode.Accumulator -> builder.append("A")
             AddressMode.NoneAddressing -> unreachable("code should not reach here")
