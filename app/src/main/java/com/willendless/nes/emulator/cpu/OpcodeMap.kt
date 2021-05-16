@@ -118,7 +118,7 @@ object OpcodeMap {
             Opcode(0xF1u, "SBC", 2u, IndirectY),
             // Inc & Dec
             Opcode(0xE6u, "INC", 2u, ZeroPage),
-            Opcode(0xF5u, "INC", 2u, ZeroPageX),
+            Opcode(0xF6u, "INC", 2u, ZeroPageX),
             Opcode(0xEEu, "INC", 3u, Absolute),
             Opcode(0xFEu, "INC", 3u, AbsoluteY),
             Opcode(0xE8u, "INX", 1u, NoneAddressing),
