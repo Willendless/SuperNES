@@ -97,7 +97,7 @@ object OpcodeMap {
             Opcode(0xE4u, "CPX", 2u, ZeroPage),
             Opcode(0xECu, "CPX", 3u, Absolute),
             Opcode(0xC0u, "CPY", 2u, Immediate),
-            Opcode(0xC4u, "CPY", 3u, ZeroPage),
+            Opcode(0xC4u, "CPY", 2u, ZeroPage),
             Opcode(0xCCu, "CPY", 3u, Absolute),
             // Arithmetic Operations
             Opcode(0x69u, "ADC", 2u, Immediate),
