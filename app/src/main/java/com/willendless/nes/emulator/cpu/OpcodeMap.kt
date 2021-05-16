@@ -23,7 +23,7 @@ object OpcodeMap {
             Opcode(0xa6u, "LDX", 2u, ZeroPage),
             Opcode(0xb6u, "LDX", 2u, ZeroPageY),
             Opcode(0xaeu, "LDX", 3u, Absolute),
-            Opcode(0xb3u, "LDX", 3u, AbsoluteY),
+            Opcode(0xbeu, "LDX", 3u, AbsoluteY),
             // LDY
             Opcode(0xA0u, "LDY", 2u, Immediate),
             Opcode(0xA4u, "LDY", 2u, ZeroPage),
