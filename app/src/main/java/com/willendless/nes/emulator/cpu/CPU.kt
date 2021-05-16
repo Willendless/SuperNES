@@ -60,23 +60,22 @@ object CPU {
     // No side effect to pc or any other registers.
     // REQUIRES: before called, pc should point to the second byte of the instruction.
     // ENSURES: return the memory address of the operand
-    private fun getOperandAddress(mode: AddressMode): UShort {
-        return when (mode) {
-            AddressMode.Immediate -> pc
-            AddressMode.ZeroPage -> peekCode().toUShort()
-            AddressMode.ZeroPageX -> (peekCode() + x).toUByte().toUShort()  // zero page wrap around
-            AddressMode.ZeroPageY -> (peekCode() + y).toUByte().toUShort()
-            AddressMode.Absolute -> bus.readUShort(pc)
-            AddressMode.AbsoluteX -> (bus.readUShort(pc) + x).toUShort()
-            AddressMode.AbsoluteY -> (bus.readUShort(pc) + y).toUShort()
-            AddressMode.Indirect -> bus.readUShort(bus.readUShort(pc))
-            AddressMode.IndirectX -> bus.readUShort((bus.readUByte(pc) + x).toUShort())
-            AddressMode.IndirectY -> (bus.readUShort(
-                bus.readUByte(pc).toUShort()
-            ) + y).toUShort()
-            AddressMode.Relative -> (pc + peekCode() + 1u).toUShort()
-            AddressMode.NoneAddressing -> unreachable("$mode not supported")
-        }
+    private fun getOperandAddress(mode: AddressMode): UShort = when (mode) {
+        AddressMode.Immediate -> pc
+        AddressMode.ZeroPage -> peekCode().toUShort()
+        AddressMode.ZeroPageX -> (peekCode() + x).toUByte().toUShort()  // zero page wrap around
+        AddressMode.ZeroPageY -> (peekCode() + y).toUByte().toUShort()
+        AddressMode.Absolute -> bus.readUShort(pc)
+        AddressMode.AbsoluteX -> (bus.readUShort(pc) + x).toUShort()
+        AddressMode.AbsoluteY -> (bus.readUShort(pc) + y).toUShort()
+        AddressMode.Indirect -> bus.readUShort(bus.readUShort(pc))
+        AddressMode.IndirectX -> bus.readUShort((bus.readUByte(pc) + x).toUShort())
+        AddressMode.IndirectY -> (bus.readUShort(
+            bus.readUByte(pc).toUShort()
+        ) + y).toUShort()
+        AddressMode.Relative -> (pc + peekCode() + 1u).toUShort()
+        AddressMode.Accumulator -> 0u
+        AddressMode.NoneAddressing -> unreachable("$mode not supported")
     }
 
     private fun lda(addressMode: AddressMode) {
@@ -142,17 +141,19 @@ object CPU {
     }
 
     private fun pha() {
-        val addr = (0x100u + sp--).toUShort()
+        val addr = (0x100u + sp).toUShort()
         bus.writeUByte(addr, a)
+        sp--
     }
 
     private fun php() {
         // https://wiki.nesdev.com/w/index.php/CPU_status_flag_behavior
-        val addr = (0x100u + sp--).toUShort()
+        val addr = (0x100u + sp).toUShort()
         bus.writeUByte(
             addr,
             PStatus.toUByte() or Flag.BREAK.mask or Flag.BREAK2.mask
         )
+        sp--
     }
 
     private fun pla() {
@@ -292,7 +293,7 @@ object CPU {
 
     private fun asl(addressMode: AddressMode) {
         val value = when (addressMode) {
-            AddressMode.NoneAddressing -> {
+            AddressMode.Accumulator -> {
                 PStatus.setStatus(Flag.CARRY, (a and 0b1000_0000u) != 0.toUByte())
                 a = (a.toInt() shl 1).toUByte()
                 a
@@ -312,7 +313,7 @@ object CPU {
 
     private fun lsr(addressMode: AddressMode) {
         val value = when (addressMode) {
-            AddressMode.NoneAddressing -> {
+            AddressMode.Accumulator -> {
                 PStatus.setStatus(Flag.CARRY, (a and 1u) != 0.toUByte())
                 a = (a.toInt() shr 1).toUByte()
                 a
@@ -330,7 +331,7 @@ object CPU {
     private fun rol(addressMode: AddressMode) {
         val carry = PStatus.getStatus(Flag.CARRY)
         val value = when (addressMode) {
-            AddressMode.NoneAddressing -> {
+            AddressMode.Accumulator -> {
                 PStatus.setStatus(Flag.CARRY, (a and 0b1000_0000u) != 0.toUByte())
                 a = (a.toInt() shl 1).toUByte()
                 if (carry) a = a or 0b0000_0001u
@@ -353,7 +354,7 @@ object CPU {
     private fun ror(addressMode: AddressMode) {
         val carry = PStatus.getStatus(Flag.CARRY)
         val value = when (addressMode) {
-            AddressMode.NoneAddressing -> {
+            AddressMode.Accumulator -> {
                 PStatus.setStatus(Flag.CARRY, (a and 1u) != 0.toUByte())
                 a = (a.toInt() shr 1).toUByte()
                 if (carry) a = a or 0b1000_0000u
@@ -423,10 +424,11 @@ object CPU {
     }
 
     private fun rti() {
-        sp--
-        status(bus.readUByte((sp + 0x100u).toUShort()))
-        sp--
+        sp++
+        status((0b0010_0000u or bus.readUByte((sp + 0x100u).toUShort()).toUInt()).toUByte())
+        sp++
         pc = bus.readUShort((sp + 0x100u).toUShort())
+        sp++
     }
 
     private fun disAssemble(opcode: OpcodeMap.Opcode): String {
@@ -465,6 +467,7 @@ object CPU {
             AddressMode.IndirectY -> builder.append("($%02X,Y) ".format(a1))
                     .append("= %04X @ %04X = %02X".format(bus.readUShort(peekCode().toUShort()).toInt(), addr, operandUShort))
             AddressMode.Relative -> builder.append("$%04X".format(addr))
+            AddressMode.Accumulator -> builder.append("A")
             AddressMode.NoneAddressing -> unreachable("code should not reach here")
         }
         return builder.toString()
