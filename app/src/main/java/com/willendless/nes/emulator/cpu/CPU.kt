@@ -3,7 +3,6 @@ package com.willendless.nes.emulator.cpu
 import com.willendless.nes.emulator.Bus
 import com.willendless.nes.emulator.Mem
 import com.willendless.nes.emulator.util.unreachable
-import java.io.OutputStream
 import java.io.PrintStream
 import java.lang.StringBuilder
 
@@ -135,7 +134,6 @@ object CPU {
 
     private fun txs() {
         sp = x
-        PStatus.updateZN(sp)
     }
 
     private fun tya() {
@@ -203,13 +201,14 @@ object CPU {
 
     private fun adc(addressMode: AddressMode) {
         val addr = getOperandAddress(addressMode)
-        val sum = a + bus.readUByte(addr) + if (PStatus.getStatus(Flag.CARRY)) 1u else 0u
+        val value = bus.readUByte(addr)
+        val sum = a + value + if (PStatus.getStatus(Flag.CARRY)) 1u else 0u
         status.apply {
             setStatus(Flag.CARRY, sum > UByte.MAX_VALUE)
             setStatus(
                 Flag.OVERFLOW,
-                (bus.readUByte(addr)
-                    .toUInt() xor sum) and (a.toUInt() xor sum) and 0b1000_0000u != 0u
+                (value.toUInt() xor sum)
+                        and (a.toUInt() xor sum) and 0b1000_0000u != 0u
             )
         }
         a = sum.toUByte()
@@ -219,11 +218,14 @@ object CPU {
     private fun sbc(addressMode: AddressMode) {
         val addr = getOperandAddress(addressMode)
         val value = bus.readUByte(addr)
-        val diff = a + (value xor 0xFFu) + 1u.toUByte() - if (PStatus.getStatus(Flag.CARRY)) 0u else 1u
+        val diff = a + (value xor 0xFFu) + 1u + if (PStatus.getStatus(Flag.CARRY)) 0u else 0b1111_1111u
         status.apply {
             setStatus(Flag.CARRY, diff > UByte.MAX_VALUE)
-            setStatus(Flag.OVERFLOW,
-                    (value.toUInt() xor diff) and (a.toUInt() xor diff) and 0b1000_0000u != 0u)
+            setStatus(
+                    Flag.OVERFLOW,
+                    ((a xor value) and 0x80u.toUByte())
+                        and ((a xor diff.toUByte()) and 0x80u.toUByte()) != 0u.toUByte()
+            )
         }
         a = diff.toUByte()
         PStatus.updateZN(a)

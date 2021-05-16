@@ -26,10 +26,10 @@ class CPUTest {
         cpu.switchBus(cpu.bus)
     }
 
-    private fun loadAndRun(program: UByteArray, offset: Int = 0x500) {
+    private fun loadAndRun(program: UByteArray, offset: Int = 0x500, os: PrintStream? = null) {
         CPU.load(program, offset)
         CPU.reset(offset.toUShort())
-        CPU.run()
+        CPU.run(os = os)
     }
 
     @Test fun test_lda_immediate_load_data() {
@@ -196,6 +196,30 @@ class CPUTest {
         val program = ubyteArrayOf(0xa2u, 0xffu, 0xe8u, 0xe8u, 0x00u)
         loadAndRun(program)
         assertEquals(1.toUByte(), cpu.x)
+    }
+
+    @Test fun test_adc_overflow() {
+        val program = ubyteArrayOf(0xa9u, 0x7fu, 0x69u, 0x7fu, 0x00u)
+        loadAndRun(program)
+        assertEquals(0b1100_0100u.toUByte(), cpu.status.get())
+    }
+
+    @Test fun test_sbc_carry() {
+        val program = ubyteArrayOf(0x38u, 0xa9u, 0x40u, 0xe9u, 0x40u, 0x00u)
+        loadAndRun(program)
+        assertEquals(0b0000_0111.toUByte(), cpu.status.get())
+    }
+
+    @Test fun test_sbc_overflow() {
+        val program = ubyteArrayOf(0x38u, 0xa9u, 0x40u, 0xe9u, 0x41u, 0x00u)
+        loadAndRun(program)
+        assertEquals(0b1000_0100u.toUByte(), cpu.status.get())
+    }
+
+    @Test fun test_sbc_carry_overflow() {
+        val program = ubyteArrayOf(0xa9u, 0x80u, 0xe9u, 0x00u, 0x00u)
+        loadAndRun(program, os = System.out)
+        assertEquals(0b0100_0101u.toUByte(), cpu.status.get())
     }
 
     @Test fun test_klaus2m5() {
