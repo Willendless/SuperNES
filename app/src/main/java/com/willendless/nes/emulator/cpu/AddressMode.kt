@@ -12,5 +12,6 @@ enum class AddressMode {
     IndirectX,
     IndirectY,
     NoneAddressing,
-    Relative
+    Relative,
+    Accumulator
 }
