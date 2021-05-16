@@ -380,16 +380,16 @@ object CPU {
 //        printAddr("sp", sp.toInt())
 //        printAddr("jumpAddr", jumpAddr.toInt())
 
-        bus.writeUShort((0x100u + sp).toUShort(), retAddr.toUShort())
         sp--
+        bus.writeUShort((0x100u + sp).toUShort(), retAddr.toUShort())
         sp--
         pc = jumpAddr
     }
 
     private fun rts() {
         sp++
-        sp++
         val retAddr = bus.readUShort((0x100u + sp).toUShort()) + 1u
+        sp++
 //        printAddr("sp", sp.toInt())
 //        printAddr("retAddr", retAddr.toInt())
         pc = retAddr.toUShort()

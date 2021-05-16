@@ -210,7 +210,7 @@ class CPUTest {
         cpu.sp = 0xffu
         cpu.pc = 0x0400u
         cpu.status(0u)
-        cpu.run(maxStep = 50000)
+        cpu.run(maxStep = 1000000)
 
         // This will ALWAYS fail
         // Check `cpu.pc` to see if it's stuck in some trap, i.e. infinite loop
