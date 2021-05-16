@@ -4,11 +4,10 @@ import com.willendless.nes.emulator.Bus
 import com.willendless.nes.emulator.RawBus
 import com.willendless.nes.emulator.cpu.CPU
 import com.willendless.nes.emulator.cpu.Flag
-import org.junit.Assert.assertTrue
-import org.junit.Assert.assertFalse
-import org.junit.Assert.assertEquals
+import com.willendless.nes.emulator.util.NESException
 import org.junit.Before
 import org.junit.After
+import org.junit.Assert.*
 import org.junit.Test
 import java.io.PrintStream
 
@@ -253,8 +252,14 @@ class CPUTest {
         cpu.status(0x24u)
         cpu.sp = 0xfdu
         cpu.pc = 0xc000u
-        CPU.run(os = fileOutputStream)
-        fileOutputStream.close()
+        try {
+            CPU.run(os = fileOutputStream)
+        } catch (e: NESException) {
+            println(e.msg)
+            fail()
+        } finally {
+            fileOutputStream.close()
+        }
     }
 
 }

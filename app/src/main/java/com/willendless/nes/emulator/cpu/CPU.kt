@@ -69,10 +69,26 @@ object CPU {
         AddressMode.AbsoluteX -> (bus.readUShort(pc) + x).toUShort()
         AddressMode.AbsoluteY -> (bus.readUShort(pc) + y).toUShort()
         AddressMode.Indirect -> bus.readUShort(bus.readUShort(pc))
-        AddressMode.IndirectX -> bus.readUShort((bus.readUByte(pc) + x).toUShort())
-        AddressMode.IndirectY -> (bus.readUShort(
-            bus.readUByte(pc).toUShort()
-        ) + y).toUShort()
+        AddressMode.IndirectX -> {
+            val addr = (peekCode() + x).toUByte()
+            if (addr == 0xFFu.toUByte()) {
+                val lo = bus.readUByte(addr.toUShort())
+                val hi = bus.readUByte(0x0u.toUShort())
+                (lo + (hi.toUInt() shl 8)).toUShort()
+            } else {
+                bus.readUShort(addr.toUShort())
+            }
+        }
+        AddressMode.IndirectY -> {
+            val addr = peekCode().toUShort()
+            if (addr == 0xFFu.toUShort()) {
+                val lo = bus.readUByte(addr)
+                val hi = bus.readUByte(0x0u.toUShort())
+                (lo + (hi.toUInt() shl 8) + y.toUInt()).toUShort()
+            } else {
+                (bus.readUShort(addr) + y).toUShort()
+            }
+        }
         AddressMode.Relative -> (pc + peekCode() + 1u).toUShort()
         AddressMode.Accumulator -> 0u
         AddressMode.NoneAddressing -> unreachable("$mode not supported")
@@ -463,7 +479,7 @@ object CPU {
             AddressMode.Indirect -> builder.append("($%02X%02X) ".format(a1, a2))
                     .append("= %04X".format(operandUShort))
             AddressMode.IndirectX -> builder.append("($%02X,X) ".format(a1))
-                    .append("@ %02X = %04X = %02X".format((x + peekCode()).toInt(), addr, operandUShort))
+                    .append("@ %02X = %04X = %02X".format((x + peekCode()).toUByte().toInt(), addr, operandUShort))
             AddressMode.IndirectY -> builder.append("($%02X,Y) ".format(a1))
                     .append("= %04X @ %04X = %02X".format(bus.readUShort(peekCode().toUShort()).toInt(), addr, operandUShort))
             AddressMode.Relative -> builder.append("$%04X".format(addr))
