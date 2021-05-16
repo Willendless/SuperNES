@@ -68,30 +68,23 @@ object CPU {
         AddressMode.Absolute -> bus.readUShort(pc)
         AddressMode.AbsoluteX -> (bus.readUShort(pc) + x).toUShort()
         AddressMode.AbsoluteY -> (bus.readUShort(pc) + y).toUShort()
-        AddressMode.Indirect -> bus.readUShort(bus.readUShort(pc))
-        AddressMode.IndirectX -> {
-            val addr = (peekCode() + x).toUByte()
-            if (addr == 0xFFu.toUByte()) {
-                val lo = bus.readUByte(addr.toUShort())
-                val hi = bus.readUByte(0x0u.toUShort())
-                (lo + (hi.toUInt() shl 8)).toUShort()
-            } else {
-                bus.readUShort(addr.toUShort())
-            }
+        AddressMode.Indirect -> {
+            println("pc: $pc, indirectaddr1: ${Integer.toHexString(bus.readUShort(pc).toInt())}, realaddr: ${Integer.toHexString(bus.readUShort(bus.readUShort(pc)).toInt())}")
+            bus.readUShort(bus.readUShort(pc))
         }
-        AddressMode.IndirectY -> {
-            val addr = peekCode().toUShort()
-            if (addr == 0xFFu.toUShort()) {
-                val lo = bus.readUByte(addr)
-                val hi = bus.readUByte(0x0u.toUShort())
-                (lo + (hi.toUInt() shl 8) + y.toUInt()).toUShort()
-            } else {
-                (bus.readUShort(addr) + y).toUShort()
-            }
-        }
+        AddressMode.IndirectX -> zeroPageReadUShort((peekCode() + x).toUByte())
+        AddressMode.IndirectY -> (zeroPageReadUShort(peekCode()) + y).toUShort()
         AddressMode.Relative -> (pc + peekCode() + 1u).toUShort()
         AddressMode.Accumulator -> 0u
         AddressMode.NoneAddressing -> unreachable("$mode not supported")
+    }
+
+    private fun zeroPageReadUShort(addr: UByte): UShort = if (addr == 0xFFu.toUByte()) {
+        val lo = bus.readUByte(addr.toUShort())
+        val hi = bus.readUByte(0x0u.toUShort())
+        (lo + (hi.toUInt() shl 8)).toUShort()
+    } else {
+        bus.readUShort(addr.toUShort())
     }
 
     private fun lda(addressMode: AddressMode) {
@@ -476,12 +469,15 @@ object CPU {
                     .append(",X ").append("@ %04X = %02X".format(addr, operandUByte))
             AddressMode.AbsoluteY -> builder.append("$%02X%02X".format(a2, a1))
                     .append(",Y ").append("@ %04X = %2X".format(addr, operandUByte))
-            AddressMode.Indirect -> builder.append("($%02X%02X) ".format(a1, a2))
-                    .append("= %04X".format(operandUShort))
+            AddressMode.Indirect -> {
+                builder.append("($%02X%02X) ".format(a2, a1))
+                if (opcode.name == "JMP") builder.append("= %04X".format(addr))
+                else builder.append("= %04X".format(operandUShort))
+            }
             AddressMode.IndirectX -> builder.append("($%02X,X) ".format(a1))
                     .append("@ %02X = %04X = %02X".format((x + peekCode()).toUByte().toInt(), addr, operandUShort))
-            AddressMode.IndirectY -> builder.append("($%02X,Y) ".format(a1))
-                    .append("= %04X @ %04X = %02X".format(bus.readUShort(peekCode().toUShort()).toInt(), addr, operandUShort))
+            AddressMode.IndirectY -> builder.append("($%02X),Y ".format(a1))
+                    .append("= %04X @ %04X = %02X".format(zeroPageReadUShort(peekCode()).toInt(), addr, operandUShort))
             AddressMode.Relative -> builder.append("$%04X".format(addr))
             AddressMode.Accumulator -> builder.append("A")
             AddressMode.NoneAddressing -> unreachable("code should not reach here")
