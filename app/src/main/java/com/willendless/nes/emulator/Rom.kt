@@ -13,7 +13,7 @@ class Rom(raw: UByteArray) {
         private const val PRG_BANK_SIZE = 0x4000
         private const val CHR_BANK_SIZE = 0x1000
     }
-    private enum class Mirroring {
+    enum class Mirroring {
         VERTICAL,
         HORIZONTAL,
         FOUR_SCREEN

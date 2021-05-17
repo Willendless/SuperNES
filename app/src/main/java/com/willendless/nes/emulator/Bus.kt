@@ -1,5 +1,6 @@
 package com.willendless.nes.emulator
 
+import com.willendless.nes.emulator.ppu.PPU
 import com.willendless.nes.emulator.util.unreachable
 
 @ExperimentalUnsignedTypes
@@ -14,6 +15,7 @@ object Bus: Mem {
 
     private val cpuRAM = UByteArray(0x800)
     private var rom: Rom? = null
+    private val ppu =  PPU
 
     override fun readUByte(addr: UShort): UByte = when (addr) {
         in CPU_RAM_BASE..CPU_RAM_END -> {

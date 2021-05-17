@@ -1,7 +1,6 @@
 package com.willendless.nes
 
 import com.willendless.nes.emulator.Bus
-import com.willendless.nes.emulator.RawBus
 import com.willendless.nes.emulator.cpu.CPU
 import com.willendless.nes.emulator.cpu.Flag
 import com.willendless.nes.emulator.util.NESException
