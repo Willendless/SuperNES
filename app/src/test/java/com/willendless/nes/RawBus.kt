@@ -1,4 +1,6 @@
-package com.willendless.nes.emulator
+package com.willendless.nes
+
+import com.willendless.nes.emulator.Mem
 
 @ExperimentalUnsignedTypes
 @ExperimentalStdlibApi
