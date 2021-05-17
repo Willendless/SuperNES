@@ -71,7 +71,7 @@ object CPU {
         AddressMode.Indirect -> pageReadUShort(bus.readUShort(pc))
         AddressMode.IndirectX -> pageReadUShort((peekCode() + x).toUByte().toUShort())
         AddressMode.IndirectY -> (pageReadUShort(peekCode().toUShort()) + y).toUShort()
-        AddressMode.Relative -> (pc + peekCode() + 1u).toUShort()
+        AddressMode.Relative -> (pc.toInt() + peekCode().toByte() + 1).toUShort()
         AddressMode.Accumulator -> 0u
         AddressMode.NoneAddressing -> unreachable("$mode not supported")
     }
@@ -438,10 +438,11 @@ object CPU {
     }
 
     private fun disAssemble(opcode: OpcodeMap.Opcode): String {
+        val header = if (opcode.name[0] == '*') "" else " "
         val builder = if (opcode.mode == AddressMode.NoneAddressing) {
-            return opcode.name
+            return header + opcode.name
         } else {
-            StringBuilder(opcode.name).append(" ")
+            StringBuilder(header).append(opcode.name).append(" ")
         }
 
         val a1: Int = peekCode().toInt()
@@ -465,7 +466,7 @@ object CPU {
             AddressMode.AbsoluteX -> builder.append("$%02X%02X".format(a2, a1))
                     .append(",X ").append("@ %04X = %02X".format(addr, operandUByte))
             AddressMode.AbsoluteY -> builder.append("$%02X%02X".format(a2, a1))
-                    .append(",Y ").append("@ %04X = %2X".format(addr, operandUByte))
+                    .append(",Y ").append("@ %04X = %02X".format(addr, operandUByte))
             AddressMode.Indirect -> {
                 builder.append("($%02X%02X) ".format(a2, a1))
                 if (opcode.name == "JMP") builder.append("= %04X".format(addr))
@@ -485,12 +486,12 @@ object CPU {
     private fun traceCPUState(opcode: OpcodeMap.Opcode, os: PrintStream) {
         os.print("%04X  %02X ".format(pc.toInt() - 1, opcode.code.toInt()))
         when (opcode.len.toInt()) {
-            1 -> os.print("%7c".format(' '))
-            2 -> os.print("%02X %4c".format(peekCode().toInt(), ' '))
-            3 -> os.print("%02X %02X  ".format(peekCode().toInt(), peekpeekCode().toInt()))
+            1 -> os.print("%6c".format(' '))
+            2 -> os.print("%02X %3c".format(peekCode().toInt(), ' '))
+            3 -> os.print("%02X %02X ".format(peekCode().toInt(), peekpeekCode().toInt()))
             else -> unreachable("invalid opcode length")
         }
-        os.print("%-32s".format(disAssemble(opcode)))
+        os.print("%-33s".format(disAssemble(opcode)))
         os.println("A:%02X X:%02X Y:%02X P:%02X SP:%02X".format(a.toInt(), x.toInt(), y.toInt(), status.get().toInt(), sp.toInt()))
     }
 
@@ -578,7 +579,9 @@ object CPU {
                 0xF8u -> PStatus.setStatus(Flag.DECIMAL_MODE, true)
                 0x78u -> PStatus.setStatus(Flag.INTERRUPT_DISABLE, true)
                 // system functions: nop, brk, rti
-                0xEAu -> {
+                0xEAu, 0x1Au, 0x3Au, 0x5Au, 0x7Au, 0xDAu, 0xFAu, 0x04u, 0x14u, 0x34u,
+                0x44u, 0x54u, 0x64u, 0x74u, 0x80u, 0x82u, 0x89u, 0xC2u, 0xD4u, 0xE2u,
+                0xF4u, 0x0Cu, 0x1Cu, 0x3Cu, 0x5Cu, 0x7Cu, 0xDCu, 0xFCu -> {
                 } // nop
                 0x40u -> rti()
                 0x00u -> {
