@@ -230,7 +230,7 @@ object CPU {
     private fun sbc(addressMode: AddressMode) {
         val addr = getOperandAddress(addressMode)
         val value = bus.readUByte(addr)
-        val diff = a + (value xor 0xFFu) + 1u + if (PStatus.getStatus(Flag.CARRY)) 0u else 0b1111_1111u
+        val diff = a + (value xor 0xFFu) + if (PStatus.getStatus(Flag.CARRY)) 1u else 0u
         status.apply {
             setStatus(Flag.CARRY, diff > UByte.MAX_VALUE)
             setStatus(
@@ -551,7 +551,7 @@ object CPU {
                 0x87u, 0x97u, 0x83u, 0x8Fu -> sax(opcode.mode)
                 // arithmetic
                 0x69u, 0x65u, 0x75u, 0x6Du, 0x7Du, 0x79u, 0x61u, 0x71u -> adc(opcode.mode)
-                0xE9u, 0xE5u, 0xF5u, 0xEDu, 0xFDu, 0xF9u, 0xE1u, 0xF1u -> sbc(opcode.mode)
+                0xE9u, 0xE5u, 0xF5u, 0xEDu, 0xFDu, 0xF9u, 0xE1u, 0xF1u, 0xEBu -> sbc(opcode.mode)
                 0xC9u, 0xC5u, 0xD5u, 0xCDu, 0xDDu, 0xD9u, 0xC1u, 0xD1u -> cmp(opcode.mode)
                 0xE0u, 0xE4u, 0xEcu -> cpx(opcode.mode)
                 0xC0u, 0xC4u, 0xCCu -> cpy(opcode.mode)
@@ -562,11 +562,35 @@ object CPU {
                 0xC6u, 0xD6u, 0xCeu, 0xDEu -> dec(opcode.mode)
                 0xCAu -> dex()
                 0x88u -> dey()
+                0xC7u, 0xD7u, 0xCFu, 0xDFu, 0xDBu, 0xC3u, 0xD3u -> {
+                    dec(opcode.mode)
+                    cmp(opcode.mode)
+                }
+                0xE7u, 0xF7u, 0xEFu, 0xFFu, 0xFBu, 0xE3u, 0xF3u -> {
+                    inc(opcode.mode)
+                    sbc(opcode.mode)
+                }
                 // shift
                 0x0Au, 0x06u, 0x16u, 0x0Eu, 0x1Eu -> asl(opcode.mode)
                 0x4Au, 0x46u, 0x56u, 0x4Eu, 0x5Eu -> lsr(opcode.mode)
                 0x2Au, 0x26u, 0x36u, 0x2Eu, 0x3Eu -> rol(opcode.mode)
                 0x6Au, 0x66u, 0x76u, 0x6Eu, 0x7Eu -> ror(opcode.mode)
+                0x07u, 0x17u, 0x0Fu, 0x1Fu, 0x1Bu, 0x03u, 0x13u -> {
+                    asl(opcode.mode)
+                    ora(opcode.mode)
+                }
+                0x27u, 0x37u, 0x2Fu, 0x3Fu, 0x3Bu, 0x23u, 0x33u -> {
+                    rol(opcode.mode)
+                    and(opcode.mode)
+                }
+                0x47u, 0x57u, 0x4Fu, 0x5Fu, 0x5Bu, 0x43u, 0x53u -> {
+                    lsr(opcode.mode)
+                    eor(opcode.mode)
+                }
+                0x67u, 0x77u, 0x6Fu, 0x7Fu, 0x7Bu, 0x63u, 0x73u -> {
+                    ror(opcode.mode)
+                    adc(opcode.mode)
+                }
                 // jump & calls
                 0x4Cu, 0x6Cu -> jmp(opcode.mode)
                 0x20u -> jsr(opcode.mode)
