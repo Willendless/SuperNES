@@ -206,6 +206,11 @@ object CPU {
         }
     }
 
+    private fun sax(addressMode: AddressMode) {
+        val addr = getOperandAddress(addressMode)
+        bus.writeUByte(addr, a and x)
+    }
+
     private fun adc(addressMode: AddressMode) {
         val addr = getOperandAddress(addressMode)
         val value = bus.readUByte(addr)
@@ -522,6 +527,10 @@ object CPU {
                 0x85u, 0x95u, 0x8Du, 0x9Du, 0x99u, 0x81u, 0x91u -> sta(opcode.mode)
                 0x86u, 0x96u, 0x8Eu -> stx(opcode.mode)
                 0x84u, 0x94u, 0x8Cu -> sty(opcode.mode)
+                0xA7u, 0xB7u, 0xAFu, 0xBFu, 0xA3u, 0xB3u -> {
+                    lda(opcode.mode)
+                    tax()
+                }
                 // transfer
                 0xAAu -> tax() // x = a
                 0xA8u -> tay()
@@ -534,11 +543,12 @@ object CPU {
                 0x08u -> php()
                 0x68u -> pla()
                 0x28u -> plp()
-                // logic
+                // bit
                 0x29u, 0x25u, 0x35u, 0x2Du, 0x3Du, 0x39u, 0x21u, 0x31u -> and(opcode.mode)
                 0x09u, 0x05u, 0x15u, 0x0Du, 0x1Du, 0x19u, 0x01u, 0x11u -> ora(opcode.mode)
                 0x49u, 0x45u, 0x55u, 0x4Du, 0x5Du, 0x59u, 0x41u, 0x51u -> eor(opcode.mode)
                 0x24u, 0x2Cu -> bit(opcode.mode)
+                0x87u, 0x97u, 0x83u, 0x8Fu -> sax(opcode.mode)
                 // arithmetic
                 0x69u, 0x65u, 0x75u, 0x6Du, 0x7Du, 0x79u, 0x61u, 0x71u -> adc(opcode.mode)
                 0xE9u, 0xE5u, 0xF5u, 0xEDu, 0xFDu, 0xF9u, 0xE1u, 0xF1u -> sbc(opcode.mode)

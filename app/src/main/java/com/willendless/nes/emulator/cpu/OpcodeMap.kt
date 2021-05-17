@@ -30,6 +30,13 @@ object OpcodeMap {
             Opcode(0xB4u, "LDY", 2u, ZeroPageX),
             Opcode(0xAcu, "LDY", 3u, Absolute),
             Opcode(0xBCu, "LDY", 3u, AbsoluteX),
+            // LAX
+            Opcode(0xA7u, "*LAX", 2u, ZeroPage),
+            Opcode(0xB7u, "*LAX", 2u, ZeroPageY),
+            Opcode(0xAFu, "*LAX", 3u, Absolute),
+            Opcode(0xBFu, "*LAX", 3u, AbsoluteY),
+            Opcode(0xA3u, "*LAX", 2u, IndirectX),
+            Opcode(0xB3u, "*LAX", 2u, IndirectY),
             // STA
             Opcode(0x85u, "STA", 2u, ZeroPage),
             Opcode(0x95u, "STA", 2u, ZeroPageX),
@@ -99,6 +106,10 @@ object OpcodeMap {
             Opcode(0xC0u, "CPY", 2u, Immediate),
             Opcode(0xC4u, "CPY", 2u, ZeroPage),
             Opcode(0xCCu, "CPY", 3u, Absolute),
+            Opcode(0x87u, "*SAX", 2u, ZeroPage),
+            Opcode(0x97u, "*SAX", 2u, ZeroPageY),
+            Opcode(0x83u, "*SAX", 2u, IndirectX),
+            Opcode(0x8Fu, "*SAX", 3u, Absolute),
             // Arithmetic Operations
             Opcode(0x69u, "ADC", 2u, Immediate),
             Opcode(0x65u, "ADC", 2u, ZeroPage),
