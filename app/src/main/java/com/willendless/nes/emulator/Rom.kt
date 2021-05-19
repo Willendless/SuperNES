@@ -21,7 +21,7 @@ class Rom(raw: UByteArray) {
 
     private val mapper: UByte
     private val screenMirroring: Mirroring
-    val prgRom: List<UByte>
+    private val prgRom: List<UByte>
     private val chrRom: List<UByte>
 
     init {
@@ -61,4 +61,8 @@ class Rom(raw: UByteArray) {
     }
 
     fun getPrgRomLen(): Int = prgRom.size
+
+    fun getPrgRom(): List<UByte> = prgRom
+
+    fun getScreenMirroing(): Mirroring = screenMirroring
 }
