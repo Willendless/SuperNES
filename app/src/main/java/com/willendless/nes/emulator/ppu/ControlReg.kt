@@ -14,10 +14,12 @@ enum class ControlReg1Flag(val mask: UByte) {
 
 @kotlin.ExperimentalUnsignedTypes
 object ControlReg1 {
-    var reg: UByte = 0u.toUByte()
+    private var reg: UByte = 0u.toUByte()
     fun set(i: UByte) {
         reg = i
     }
+
+    fun get() = reg
 
     fun getFlag(flag: ControlReg1Flag): Boolean = reg and flag.mask != 0u.toUByte()
 }

@@ -18,6 +18,10 @@ object CPU {
     val status = PStatus
     var bus: Bus = NESBus
 
+    private const val INT_VECTOR_NMI_BASE: UShort = 0xFFFAu
+    private const val INT_VECTOR_RESET_BASE: UShort = 0xFFFCu
+    private const val INT_VECTOR_BRK_BASE: UShort = 0xFFFEu
+
     fun switchBus(alternative: Bus) {
         bus = alternative
     }
@@ -32,7 +36,7 @@ object CPU {
         x = 0u
         y = 0u
         sp = 0xfdu // See https://github.com/bugzmanov/nes_ebook/issues/10
-        pc = bus.readUShort(0xFFFCu)
+        pc = bus.readUShort(INT_VECTOR_RESET_BASE)
         status(0u)
     }
 
@@ -444,23 +448,6 @@ object CPU {
             InstExeContext.isPageCrossed = true
     }
 
-    // TODO
-    private fun brk() {
-//        memory.writeUnsignedShort(sp.getValUnsigned(), pc.getValUnsigned())
-//        sp++
-//        memory.writeUnsignedByte(sp.getValUnsigned() or 0b0011_0000, status.toUByte())
-//        sp++
-//        pc.set(memory.readUnsignedShort(0xFFFE))
-//        // side effect of brk is set I to 1
-//        status.setI()
-        bus.writeUShort((sp + 0x100u).toUShort(), pc)
-        sp--
-        bus.writeUByte((sp + 0x100u).toUShort(), PStatus.toUByte() or 0b0011_0000u)
-        sp--
-        pc = 0xFFFEu
-        PStatus.setStatus(Flag.INTERRUPT_DISABLE, true)
-    }
-
     private fun rti() {
         sp++
         status((0b0010_0000u or bus.readUByte((sp + 0x100u).toUShort()).toUInt()).toUByte())
@@ -527,6 +514,30 @@ object CPU {
         os.println("A:%02X X:%02X Y:%02X P:%02X SP:%02X".format(a.toInt(), x.toInt(), y.toInt(), status.get().toInt(), sp.toInt()))
     }
 
+    // save cpu context and jump to BRK handler
+    private fun brk() {
+        sp--
+        bus.writeUShort((sp + 0x100u).toUShort(), pc)
+        sp--
+        bus.writeUByte((sp + 0x100u).toUShort(), PStatus.toUByte() or 0b0011_0000u)
+        sp--
+        pc = bus.readUShort(INT_VECTOR_BRK_BASE)
+        PStatus.setStatus(Flag.INTERRUPT_DISABLE, true)
+    }
+
+    // save cpu context and jump to NMI handler
+    private fun interruptNMI() {
+        sp--
+        bus.writeUShort((sp + 0x100u).toUShort(), pc)
+        sp--
+        bus.writeUByte((sp + 0x100u).toUShort(),
+            status.get() or Flag.BREAK.mask or Flag.BREAK2.mask)
+        sp--
+        status.setStatus(Flag.INTERRUPT_DISABLE, true)
+        bus.tick(2)
+        pc = bus.readUShort(INT_VECTOR_NMI_BASE)
+    }
+
     private object InstExeContext {
         var isBranchSucceed: Boolean = false
         var isPageCrossed: Boolean = false
@@ -547,6 +558,11 @@ object CPU {
                 break
 
             curStep += 1
+
+            // Handle NMI interrupt before interpret instructions
+            if (bus.pollNMIStatus()) {
+                interruptNMI()
+            }
 
             val code = fetchCode()
             val opcode = OpcodeMap.getOpcode(code)
@@ -658,10 +674,7 @@ object CPU {
                 0xF4u, 0x0Cu, 0x1Cu, 0x3Cu, 0x5Cu, 0x7Cu, 0xDCu, 0xFCu -> {
                 } // nop
                 0x40u -> rti()
-                0x00u -> {
-                    brk()
-                    return
-                }
+                0x00u -> brk()
                 else -> unreachable("unreachable code")
             }
 

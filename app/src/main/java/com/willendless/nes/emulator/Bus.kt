@@ -24,5 +24,5 @@ interface Bus {
 
     fun tick(cycles: Int) {}
 
-    fun pollNMIStatus() {}
+    fun pollNMIStatus(): Boolean = false
 }

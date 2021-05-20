@@ -1,6 +1,7 @@
 package com.willendless.nes.emulator
 
 import com.willendless.nes.emulator.ppu.PPU
+import com.willendless.nes.emulator.ppu.Flag
 import com.willendless.nes.emulator.util.unreachable
 
 @ExperimentalUnsignedTypes
@@ -98,4 +99,6 @@ object NESBus: Bus {
         this.cycles += cycles
         ppu.tick(cycles * 3)
     }
+
+    override fun pollNMIStatus(): Boolean = ppu.takeNMI()
 }

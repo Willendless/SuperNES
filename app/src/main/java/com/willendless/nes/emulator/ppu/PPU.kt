@@ -25,8 +25,10 @@ object PPU {
     private var cycles = 0;
     private var scanLine = 0
     private const val SCAN_LINE_CYCLES_CNT = 341
-    private const val SCAN_LINE_CNT = 262
-    private const val SCAN_LINE_INT = 241
+    private const val SCAN_LINE_END = 262
+    private const val SCAN_LINE_VBLANK_BASE = 241
+    // interrupt
+    private var isNMITriggered = false
 
     fun init(rom: Rom) {
         this.chrRom = rom.getPrgRom()
@@ -39,25 +41,40 @@ object PPU {
             this.cycles -= SCAN_LINE_CYCLES_CNT
             scanLine += 1
 
-            if (scanLine == SCAN_LINE_INT
-                && controlReg1.getFlag(ControlReg1Flag.NMI_ENABLE)) {
-                statusReg.setStatus(Flag.VBLANK_INTERRUPT_OCCUR, true)
-                unreachable("todo")
+            if (scanLine == SCAN_LINE_VBLANK_BASE) {
+                statusReg.setStatus(Flag.VBLANK_STATE, true)
+                statusReg.setStatus(Flag.IGNORE_RAM_WRITE, false)
+                if (controlReg1.getFlag(ControlReg1Flag.NMI_ENABLE))
+                    isNMITriggered = true
             }
 
-            if (scanLine >= SCAN_LINE_CNT) {
+            if (scanLine >= SCAN_LINE_END) {
                 scanLine = 0
-                statusReg.setStatus(Flag.VBLANK_INTERRUPT_OCCUR, false)
+                isNMITriggered = false
+                statusReg.setStatus(Flag.VBLANK_STATE, false)
             }
         }
+    }
+
+    // ENSURES: if NMI has been triggered, return true and cleared it
+    fun takeNMI(): Boolean {
+        val triggered = isNMITriggered
+        isNMITriggered = false
+        return triggered
     }
 
     fun writeAddrReg(value: UByte) {
         addrReg.update(value)
     }
 
+    private fun isInVblank() = scanLine >= SCAN_LINE_VBLANK_BASE
+
     fun writeControlReg1(value: UByte) {
+        val prevNMIEn = controlReg1.getFlag(ControlReg1Flag.NMI_ENABLE)
         controlReg1.set(value)
+        val curNMIEn = controlReg1.getFlag(ControlReg1Flag.NMI_ENABLE)
+        if (!prevNMIEn && curNMIEn && isInVblank())
+            statusReg.setStatus(Flag.VBLANK_STATE, true)
     }
 
     fun writeControlReg2(value: UByte) {
