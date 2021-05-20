@@ -21,4 +21,7 @@ interface Mem {
     fun populate(source: UByteArray, offset: Int)
 
     fun clear()
+
+    fun tick(cycles: Int) {
+    }
 }

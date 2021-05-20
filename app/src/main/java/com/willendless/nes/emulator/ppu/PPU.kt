@@ -21,10 +21,35 @@ object PPU {
     private var scrollReg: UByte = 0u.toUByte()
     // latch
     private var dataBuffer: UByte = 0u.toUByte()
+    // scan line bookkeeping
+    private var cycles = 0;
+    private var scanLine = 0
+    private const val SCAN_LINE_CYCLES_CNT = 341
+    private const val SCAN_LINE_CNT = 262
+    private const val SCAN_LINE_INT = 241
 
     fun init(rom: Rom) {
         this.chrRom = rom.getPrgRom()
         this.mirroring = rom.getScreenMirroing()
+    }
+
+    fun tick(cycles: Int) {
+        this.cycles += cycles
+        if (cycles >= SCAN_LINE_CYCLES_CNT) {
+            this.cycles -= SCAN_LINE_CYCLES_CNT
+            scanLine += 1
+
+            if (scanLine == SCAN_LINE_INT
+                && controlReg1.getFlag(ControlReg1Flag.NMI_ENABLE)) {
+                statusReg.setStatus(Flag.VBLANK_INTERRUPT_OCCUR, true)
+                unreachable("todo")
+            }
+
+            if (scanLine >= SCAN_LINE_CNT) {
+                scanLine = 0
+                statusReg.setStatus(Flag.VBLANK_INTERRUPT_OCCUR, false)
+            }
+        }
     }
 
     fun writeAddrReg(value: UByte) {
@@ -127,7 +152,10 @@ object PPU {
             // write chr rom
             in 0..0x1FFF -> unreachable("chr rom addr: " +
                     "${Integer.toHexString(addr.toInt())} cannot be written")
-            in 0x2000..0x2FFF -> ram[addr.toInt() - 0x2000] = value
+            in 0x2000..0x2FFF -> {
+                if (!statusReg.getStatus(Flag.IGNORE_RAM_WRITE))
+                    ram[addr.toInt() - 0x2000] = value
+            }
             in 0x3f00..0x3fff -> palettesTable[(addr.toInt() - 0x3f00)]
             else -> unreachable("unexpected ppu memory address" +
                     " ${Integer.toHexString(addr.toInt())}")

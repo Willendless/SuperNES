@@ -59,18 +59,23 @@ object CPU {
     // Return operand according to addressing mode.
     // No side effect to pc or any other registers.
     // REQUIRES: before called, pc should point to the second byte of the instruction.
-    // ENSURES: return the memory address of the operand
+    // ENSURES: return the memory address of the operand and InstExecContext may be modified
     private fun getOperandAddress(mode: AddressMode): UShort = when (mode) {
         AddressMode.Immediate -> pc
         AddressMode.ZeroPage -> peekCode().toUShort()
         AddressMode.ZeroPageX -> (peekCode() + x).toUByte().toUShort()  // zero page wrap around
         AddressMode.ZeroPageY -> (peekCode() + y).toUByte().toUShort()
         AddressMode.Absolute -> bus.readUShort(pc)
-        AddressMode.AbsoluteX -> (bus.readUShort(pc) + x).toUShort()
-        AddressMode.AbsoluteY -> (bus.readUShort(pc) + y).toUShort()
+        AddressMode.AbsoluteX, AddressMode.AbsoluteY -> getAbsoluteOperandAddress(mode)
         AddressMode.Indirect -> pageReadUShort(bus.readUShort(pc))
         AddressMode.IndirectX -> pageReadUShort((peekCode() + x).toUByte().toUShort())
-        AddressMode.IndirectY -> (pageReadUShort(peekCode().toUShort()) + y).toUShort()
+        AddressMode.IndirectY -> {
+            val origin = pageReadUShort(peekCode().toUShort())
+            val target = (pageReadUShort(peekCode().toUShort()) + y).toUShort()
+            if (isPageCrossed(origin, target))
+                InstExeContext.isPageCrossed = true
+            target
+        }
         AddressMode.Relative -> (pc.toInt() + peekCode().toByte() + 1).toUShort()
         AddressMode.Accumulator -> 0u
         AddressMode.NoneAddressing -> unreachable("$mode not supported")
@@ -83,6 +88,23 @@ object CPU {
     } else {
         bus.readUShort(addr)
     }
+
+    // ENSURES: InstExecContext.isPageCrossed may be modified
+    private fun getAbsoluteOperandAddress(mode: AddressMode): UShort {
+        val origin = bus.readUShort(pc)
+        val target = when (mode) {
+            AddressMode.AbsoluteX -> (origin + x).toUShort()
+            AddressMode.AbsoluteY -> (origin + y).toUShort()
+            else -> unreachable("getAbsoluteOperandAddress() can only deal with" +
+                    " AbsoluteX/Y addressing mode")
+        }
+        if (isPageCrossed(origin, target))
+            InstExeContext.isPageCrossed = true
+        return target
+    }
+
+    private fun isPageCrossed(origin: UShort, target: UShort): Boolean
+        = ((origin and target) and 0xFFu) != 0u.toUShort()
 
     private fun lda(addressMode: AddressMode) {
         val addr = getOperandAddress(addressMode)
@@ -413,8 +435,13 @@ object CPU {
         println("$head addr: ${Integer.toHexString(addr)}")
     }
 
+    // ENSURES: InstExecContext.isBranchSucceed will be modified and isPageCrossed may be modified
     private fun branch() {
+        InstExeContext.isBranchSucceed = true
+        val origin = pc
         pc = (pc.toInt() + peekCode().toByte() + 1).toUShort()
+        if (isPageCrossed(origin, pc))
+            InstExeContext.isPageCrossed = true
     }
 
     // TODO
@@ -500,6 +527,16 @@ object CPU {
         os.println("A:%02X X:%02X Y:%02X P:%02X SP:%02X".format(a.toInt(), x.toInt(), y.toInt(), status.get().toInt(), sp.toInt()))
     }
 
+    private object InstExeContext {
+        var isBranchSucceed: Boolean = false
+        var isPageCrossed: Boolean = false
+
+        fun set(isBranchSucceed: Boolean, isPageCrossed: Boolean) {
+            this.isBranchSucceed = isBranchSucceed
+            this.isPageCrossed = isPageCrossed
+        }
+    }
+
     // Run game in the memory begin from 0x8000.
     fun run(timeoutMs: Long = 10_000, maxStep: Long = 10_000, os: PrintStream? = null) {
         var curStep = 0
@@ -514,6 +551,9 @@ object CPU {
             val code = fetchCode()
             val opcode = OpcodeMap.getOpcode(code)
             val curPc = pc
+
+            // reset current instruction execution context
+            InstExeContext.set(false, false)
 
             // TODO: maybe don't increase pc in `fetchCode`?
             if (os != null) traceCPUState(opcode, os)
@@ -624,6 +664,11 @@ object CPU {
                 }
                 else -> unreachable("unreachable code")
             }
+
+            var cycles = opcode.cycles
+            if (opcode.pageCrossedOverhead && InstExeContext.isPageCrossed) cycles++
+            if (opcode.branch && InstExeContext.isBranchSucceed) cycles++
+            bus.tick(cycles)
 
             if (curPc == pc) {
                 pc = (pc + opcode.len - 1u).toUShort()

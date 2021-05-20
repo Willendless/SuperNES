@@ -26,6 +26,7 @@ object Bus: Mem {
     private val cpuRAM = UByteArray(0x800)
     private var rom: Rom? = null
     private val ppu =  PPU
+    private var cycles = 0
 
     override fun readUByte(addr: UShort): UByte = when (addr) {
         in CPU_RAM_BASE..CPU_RAM_END -> {
@@ -92,5 +93,10 @@ object Bus: Mem {
 
     override fun clear() {
         cpuRAM.fill(0u)
+    }
+
+    override fun tick(cycles: Int) {
+        this.cycles += cycles
+        ppu.tick(cycles * 3)
     }
 }
