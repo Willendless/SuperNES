@@ -1,7 +1,7 @@
 package com.willendless.nes.emulator.cpu
 
 import com.willendless.nes.emulator.Bus
-import com.willendless.nes.emulator.Mem
+import com.willendless.nes.emulator.NESBus
 import com.willendless.nes.emulator.util.unreachable
 import java.io.PrintStream
 import java.lang.StringBuilder
@@ -16,9 +16,9 @@ object CPU {
     var pc: UShort = 0u
     var sp: UByte = 0u
     val status = PStatus
-    var bus: Mem = Bus
+    var bus: Bus = NESBus
 
-    fun switchBus(alternative: Mem) {
+    fun switchBus(alternative: Bus) {
         bus = alternative
     }
 

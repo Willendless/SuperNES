@@ -2,7 +2,7 @@ package com.willendless.nes.game.mock
 
 import android.graphics.Color.*
 import android.util.Log
-import com.willendless.nes.emulator.Bus
+import com.willendless.nes.emulator.NESBus
 import com.willendless.nes.emulator.cpu.CPU
 import com.willendless.nes.framework.Game
 import com.willendless.nes.framework.Input
@@ -20,19 +20,19 @@ class SnakeMainScreen(game: Game): Screen(game) {
                 Input.KeyEvent.KEY_DOWN -> {
                     val char = keyEvents[i].KeyChar
                     when (keyEvents[i].KeyChar) {
-                        'w' -> Bus.writeUByte(0xFFu, 0x77u)
-                        's' -> Bus.writeUByte(0xFFu, 0x73u)
-                        'a' -> Bus.writeUByte(0xFFu, 0x61u)
-                        'd' -> Bus.writeUByte(0xFFu, 0x64u)
+                        'w' -> NESBus.writeUByte(0xFFu, 0x77u)
+                        's' -> NESBus.writeUByte(0xFFu, 0x73u)
+                        'a' -> NESBus.writeUByte(0xFFu, 0x61u)
+                        'd' -> NESBus.writeUByte(0xFFu, 0x64u)
                         else -> {}
                     }
-                    Log.d("Events", "handle $char key down, mem val ${Bus.readUByte(0xFFu)}")
+                    Log.d("Events", "handle $char key down, mem val ${NESBus.readUByte(0xFFu)}")
                 }
                 else -> {}
             }
             i++
         }
-        Bus.writeUByte(0xfeu, (Random().nextInt(16) + 1).toUByte())
+        NESBus.writeUByte(0xfeu, (Random().nextInt(16) + 1).toUByte())
         CPU.run(3)
     }
 
@@ -54,7 +54,7 @@ class SnakeMainScreen(game: Game): Screen(game) {
         var x = 0
         var y = 0
         for (pos in 0x0200 until 0x0600) {
-            val colorByte = Bus.readUByte(pos.toUShort())
+            val colorByte = NESBus.readUByte(pos.toUShort())
             val color = getColor(colorByte.toInt())
             game.getGraphics().drawPixel(x, y, color)
             if (x == 31) {
@@ -72,6 +72,6 @@ class SnakeMainScreen(game: Game): Screen(game) {
     }
 
     override fun dispose() {
-        Bus.clear()
+        NESBus.clear()
     }
 }

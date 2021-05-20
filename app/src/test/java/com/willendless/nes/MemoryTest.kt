@@ -1,13 +1,13 @@
 package com.willendless.nes
 
-import com.willendless.nes.emulator.Bus
+import com.willendless.nes.emulator.NESBus
 import org.junit.Assert
 import org.junit.Test
 
 @ExperimentalStdlibApi
 @ExperimentalUnsignedTypes
 class MemoryTest {
-    private val memory = Bus
+    private val memory = NESBus
 
     @Test fun test_read_write_byte() {
         memory.writeUByte(0x0u, 0x42u)

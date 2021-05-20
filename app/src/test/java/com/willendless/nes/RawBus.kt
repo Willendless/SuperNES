@@ -1,10 +1,10 @@
 package com.willendless.nes
 
-import com.willendless.nes.emulator.Mem
+import com.willendless.nes.emulator.Bus
 
 @ExperimentalUnsignedTypes
 @ExperimentalStdlibApi
-object RawBus : Mem {
+object RawBus : Bus {
     var mem = UByteArray(0x10000)   // 64KiB
 
     override fun readUByte(addr: UShort): UByte = mem[addr.toInt()]

@@ -1,6 +1,6 @@
 package com.willendless.nes
 
-import com.willendless.nes.emulator.Bus
+import com.willendless.nes.emulator.NESBus
 import com.willendless.nes.emulator.cpu.CPU
 import com.willendless.nes.emulator.cpu.Flag
 import com.willendless.nes.emulator.util.NESException
@@ -243,7 +243,7 @@ class CPUTest {
         val testRom = java.io.File("src/main/assets/testRom/nestest.nes")
         val fileOutputStream = PrintStream(java.io.File("src/main/assets/testRom/nestest.out"))
         val program = testRom.readBytes().toUByteArray()
-        cpu.switchBus(Bus)
+        cpu.switchBus(NESBus)
         cpu.bus.populate(program, 0xc000)
         cpu.a = 0u
         cpu.x = 0u
