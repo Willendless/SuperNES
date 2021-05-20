@@ -549,6 +549,7 @@ object CPU {
     }
 
     // Run game in the memory begin from 0x8000.
+    // For each instruction, check NMI interrupt before interpreted each instruction
     fun run(timeoutMs: Long = 10_000, maxStep: Long = 10_000, os: PrintStream? = null) {
         var curStep = 0
         val startTime = System.nanoTime() / 1000_000
@@ -669,10 +670,12 @@ object CPU {
                 0xF8u -> PStatus.setStatus(Flag.DECIMAL_MODE, true)
                 0x78u -> PStatus.setStatus(Flag.INTERRUPT_DISABLE, true)
                 // system functions: nop, brk, rti
-                0xEAu, 0x1Au, 0x3Au, 0x5Au, 0x7Au, 0xDAu, 0xFAu, 0x04u, 0x14u, 0x34u,
-                0x44u, 0x54u, 0x64u, 0x74u, 0x80u, 0x82u, 0x89u, 0xC2u, 0xD4u, 0xE2u,
-                0xF4u, 0x0Cu, 0x1Cu, 0x3Cu, 0x5Cu, 0x7Cu, 0xDCu, 0xFCu -> {
-                } // nop
+                // nop without operand
+                0xEAu, 0x1Au, 0x3Au, 0x5Au, 0x7Au, 0xDAu, 0xFAu,
+                0x04u, 0x14u, 0x34u, 0x44u, 0x54u, 0x64u, 0x74u,
+                0x80u, 0x82u, 0x89u, 0xC2u, 0xD4u, 0xE2u, 0xF4u, 0x0Cu -> {}
+                // nop with operand and may influenced InstExecContext
+                0x1Cu, 0x3Cu, 0x5Cu, 0x7Cu, 0xDCu, 0xFCu -> getOperandAddress(opcode.mode)
                 0x40u -> rti()
                 0x00u -> brk()
                 else -> unreachable("unreachable code")
