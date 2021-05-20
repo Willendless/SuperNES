@@ -4,18 +4,35 @@ import com.willendless.nes.emulator.Rom
 import com.willendless.nes.emulator.util.unreachable
 import com.willendless.nes.emulator.util.assert
 
+// 7  bit  0
+// ---- ----
+// BGRs bMmG
+// |||| ||||
+// |||| |||+- Greyscale (0: normal color, 1: produce a greyscale display)
+// |||| ||+-- 1: Show background in leftmost 8 pixels of screen, 0: Hide
+// |||| |+--- 1: Show sprites in leftmost 8 pixels of screen, 0: Hide
+// |||| +---- 1: Show background
+// |||+------ 1: Show sprites
+// ||+------- Emphasize red (green on PAL/Dendy)
+// |+-------- Emphasize green (red on PAL/Dendy)
+// +--------- Emphasize blue
+
 @ExperimentalUnsignedTypes
 object PPU {
     // memory address space
+    // chrRom: 0x0..0x2000
     private lateinit var chrRom: List<UByte>
-    private lateinit var mirroring: Rom.Mirroring
+    // ram: 0x2000..0x2800..mirror to..0x3F00
     private val ram: UByteArray = UByteArray(2048)
+    // palettes: 0x3F00..0x3F20..mirror to..0x4000
     private val palettesTable: UByteArray = UByteArray(32)
+    // oam: ppu internal memory
     private val oam: UByteArray = UByteArray(256)
+    private lateinit var mirroring: Rom.Mirroring
     // registers
     private var addrReg = AddressReg
-    private val controlReg1 = ControlReg1
-    private val controlReg2 = ControlReg2
+    private val controlReg1 = ControllerReg
+    private val controlReg2 = MaskReg
     private val statusReg = StatusReg
     private var oamAddrReg: UByte = 0u.toUByte()
     private var scrollReg: UByte = 0u.toUByte()
@@ -44,7 +61,7 @@ object PPU {
             if (scanLine == SCAN_LINE_VBLANK_BASE) {
                 statusReg.setStatus(Flag.VBLANK_STATE, true)
                 statusReg.setStatus(Flag.IGNORE_RAM_WRITE, false)
-                if (controlReg1.getFlag(ControlReg1Flag.NMI_ENABLE))
+                if (controlReg1.getFlag(ControllerRegFlag.NMI_ENABLE))
                     isNMITriggered = true
             }
 
@@ -56,7 +73,7 @@ object PPU {
         }
     }
 
-    // ENSURES: if NMI has been triggered, return true and cleared it
+    // ENSURES: return true if there is a NMI waiting to be handled, clear it before return
     fun takeNMI(): Boolean {
         val triggered = isNMITriggered
         isNMITriggered = false
@@ -70,9 +87,9 @@ object PPU {
     private fun isInVblank() = scanLine >= SCAN_LINE_VBLANK_BASE
 
     fun writeControlReg1(value: UByte) {
-        val prevNMIEn = controlReg1.getFlag(ControlReg1Flag.NMI_ENABLE)
+        val prevNMIEn = controlReg1.getFlag(ControllerRegFlag.NMI_ENABLE)
         controlReg1.set(value)
-        val curNMIEn = controlReg1.getFlag(ControlReg1Flag.NMI_ENABLE)
+        val curNMIEn = controlReg1.getFlag(ControllerRegFlag.NMI_ENABLE)
         if (!prevNMIEn && curNMIEn && isInVblank())
             statusReg.setStatus(Flag.VBLANK_STATE, true)
     }
@@ -87,8 +104,12 @@ object PPU {
         oamAddrReg = value
     }
 
+    fun readOAMUByte(): UByte = oam[oamAddrReg.toInt()]
+
+    // ENSURES: oamAddr will be incremented
     fun writeOAMUByte(value: UByte) {
         oam[oamAddrReg.toInt()] = value
+        oamAddrReg++
     }
 
     fun writeScrollReg(value: UByte) {
@@ -96,7 +117,7 @@ object PPU {
     }
 
     fun incAddrReg() {
-        if (controlReg1.getFlag(ControlReg1Flag.VRAM_ADD_AUTOINCREMENT)) {
+        if (controlReg1.getFlag(ControllerRegFlag.VRAM_ADD_AUTOINCREMENT)) {
             addrReg.inc(32u)
         } else {
             addrReg.inc(1u)

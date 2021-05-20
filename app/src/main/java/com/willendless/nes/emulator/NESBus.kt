@@ -17,7 +17,7 @@ object NESBus: Bus {
     private const val PPU_CONTROL_REG_2: UShort = 0x2001u // write only
     private const val PPU_STATUS_REG: UShort = 0x2002u // read only
     private const val PPU_OAM_ADDRESS_REG: UShort = 0x2003u // write only
-    private const val PPU_OAM_DATA_REG: UShort = 0x2004u // write only
+    private const val PPU_OAM_DATA_REG: UShort = 0x2004u // read/write
     private const val PPU_SCROLL: UShort = 0x2005u // write only
     private const val PPU_ADDRESS_REG: UShort = 0x2006u // write only
     private const val PPU_DATA_REG: UShort = 0x2007u // read/write
@@ -36,8 +36,9 @@ object NESBus: Bus {
         in PPU_REGS_BASE..PPU_REGS_END -> {
             when (addr and 0b111u) {
                 PPU_CONTROL_REG_1, PPU_CONTROL_REG_2, PPU_OAM_ADDRESS_REG,
-                PPU_OAM_DATA_REG, PPU_SCROLL, PPU_ADDRESS_REG,
+                PPU_SCROLL, PPU_ADDRESS_REG,
                 PPU_OAM_DMA-> unreachable("Unable to read from write only register $addr")
+                PPU_OAM_DATA_REG -> ppu.readOAMUByte()
                 PPU_STATUS_REG -> ppu.readStatusReg()
                 PPU_DATA_REG -> ppu.readUByte()
                 else -> unreachable("addr: ${Integer.toHexString(addr.toInt())}" +
