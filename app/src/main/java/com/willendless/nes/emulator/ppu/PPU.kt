@@ -21,7 +21,7 @@ import com.willendless.nes.emulator.util.assert
 object PPU {
     // memory address space
     // chrRom: 0x0..0x2000
-    private lateinit var chrRom: List<UByte>
+    lateinit var chrRom: List<UByte>
     // ram: 0x2000..0x2800..mirror to..0x3F00
     private val ram: UByteArray = UByteArray(2048)
     // palettes: 0x3F00..0x3F20..mirror to..0x4000
@@ -48,7 +48,7 @@ object PPU {
     private var isNMITriggered = false
 
     fun init(rom: Rom) {
-        this.chrRom = rom.getPrgRom()
+        this.chrRom = rom.getChrRom()
         this.mirroring = rom.getScreenMirroing()
     }
 

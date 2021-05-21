@@ -28,6 +28,10 @@ object NESBus: Bus {
     private val ppu =  PPU
     private var cycles = 0
 
+    fun init(rom: Rom) {
+        this.rom = rom
+    }
+
     override fun readUByte(addr: UShort): UByte = when (addr) {
         in CPU_RAM_BASE..CPU_RAM_END -> {
             val mirroredAddress = addr and 0b00000111_11111111u

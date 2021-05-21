@@ -64,5 +64,7 @@ class Rom(raw: UByteArray) {
 
     fun getPrgRom(): List<UByte> = prgRom
 
+    fun getChrRom(): List<UByte> = chrRom
+
     fun getScreenMirroing(): Mirroring = screenMirroring
 }

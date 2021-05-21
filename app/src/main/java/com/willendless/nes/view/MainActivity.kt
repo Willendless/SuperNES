@@ -12,7 +12,7 @@ class MainActivity : AppCompatActivity() {
                         "KeyTest", "AccelerometerTest", "AssetsTest",
                         "SoundPoolTest", "MediaPlayerTest", "FullScreenTest",
                         "RenderViewTest", "ShapeTest", "BitmapTest", "FontTest", "SurfaceViewTest",
-                        "NotificationTest", "SnakeGameActivityTest")
+                        "NotificationTest", "SnakeGameActivityTest", "AlterEgoGameActivityTest")
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)

@@ -28,9 +28,13 @@ abstract class AndroidGame: AppCompatActivity(), Game {
                 WindowInsets.Type.statusBars()
                         or WindowInsets.Type.navigationBars())
 
-        val frameBufferWidth = 32
-        val frameBufferHeight = 32
-        val frameBuffer = Bitmap.createBitmap(frameBufferWidth, frameBufferHeight, Bitmap.Config.RGB_565)
+        // snake game resolution
+//        val frameBufferWidth = 32
+//        val frameBufferHeight = 32
+        // NES resolution
+        val frameBufferWidth = 256
+        val frameBufferHeight = 240
+        val frameBuffer = Bitmap.createBitmap(frameBufferWidth, frameBufferHeight, Bitmap.Config.ARGB_8888)
 
         // scaleX
         val scaleX = 1F
