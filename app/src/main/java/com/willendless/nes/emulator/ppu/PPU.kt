@@ -1,21 +1,12 @@
 package com.willendless.nes.emulator.ppu
 
+import android.os.Build
+import androidx.annotation.RequiresApi
 import com.willendless.nes.emulator.Rom
 import com.willendless.nes.emulator.util.unreachable
 import com.willendless.nes.emulator.util.assert
-
-// 7  bit  0
-// ---- ----
-// BGRs bMmG
-// |||| ||||
-// |||| |||+- Greyscale (0: normal color, 1: produce a greyscale display)
-// |||| ||+-- 1: Show background in leftmost 8 pixels of screen, 0: Hide
-// |||| |+--- 1: Show sprites in leftmost 8 pixels of screen, 0: Hide
-// |||| +---- 1: Show background
-// |||+------ 1: Show sprites
-// ||+------- Emphasize red (green on PAL/Dendy)
-// |+-------- Emphasize green (red on PAL/Dendy)
-// +--------- Emphasize blue
+import com.willendless.nes.framework.Graphics
+import com.willendless.nes.framework.impl.AndroidGraphics
 
 @ExperimentalUnsignedTypes
 object PPU {
@@ -48,14 +39,14 @@ object PPU {
     private var isNMITriggered = false
 
     fun init(rom: Rom) {
-        this.chrRom = rom.getChrRom()
-        this.mirroring = rom.getScreenMirroing()
+        chrRom = rom.getChrRom()
+        mirroring = rom.getScreenMirroing()
     }
 
-    fun tick(cycles: Int) {
-        this.cycles += cycles
+    fun tick(deltaCycles: Int) {
+        cycles += deltaCycles
         if (cycles >= SCAN_LINE_CYCLES_CNT) {
-            this.cycles -= SCAN_LINE_CYCLES_CNT
+            cycles -= SCAN_LINE_CYCLES_CNT
             scanLine += 1
 
             if (scanLine == SCAN_LINE_VBLANK_BASE) {
@@ -124,6 +115,48 @@ object PPU {
         }
     }
 
+    // Render screen according to ppu vram.
+    @RequiresApi(Build.VERSION_CODES.O)
+    fun render(graphics: Graphics) {
+        val nameTableBank = controlReg1.getNameTableBase()
+        val backgroundBank = controlReg1.
+            getBackgroundTableBase(ControllerReg.PatternTableKind.BACKGROUND)
+
+        // each byte map to one tile
+        for (i in 0 until 0x3C0) {
+            val tileIndex = ram[i].toInt()
+//            println("$i tileIndex: $tileIndex")
+            val tileY = i / 32 * 8 // pixel based coordinates
+            val tileX = i % 32 * 8 // pixel based coordinates
+
+            renderTile(tileX, tileY, backgroundBank.toInt(), tileIndex, graphics)
+        }
+    }
+
+    // REQUIRES: bank ==
+    @RequiresApi(Build.VERSION_CODES.O)
+    private fun renderTile(x: Int, y: Int, bank: Int, tileIndex: Int, graphics: Graphics) {
+        val base = bank + tileIndex * 16
+        val tile = chrRom.slice(base until base + 16)
+        for (r in 0 until 8) {
+            var upper = tile[r].toInt()
+            var lower = tile[r + 8].toInt()
+            for (p in (0 until 8).reversed()) {
+                val index = ((1 and upper) shl 1) or (1 and lower)
+                lower = lower shr 1
+                upper = upper shr 1
+                val color = when (index) {
+                    0 -> PaletteMap.getColor(0x10)
+                    1 -> PaletteMap.getColor(0x23)
+                    2 -> PaletteMap.getColor(0x27)
+                    3 -> PaletteMap.getColor(0x30)
+                    else -> unreachable("Unknown palette index")
+                }
+                graphics.drawPixel(x + p, y + r, color.toArgb())
+            }
+        }
+    }
+
     private val VERTICAL_TABLE2 = Pair(Rom.Mirroring.VERTICAL, 2);
     private val VERTICAL_TABLE3 = Pair(Rom.Mirroring.VERTICAL, 3);
     private val HORIZONTAL_TABLE1 = Pair(Rom.Mirroring.HORIZONTAL, 1)
@@ -135,19 +168,27 @@ object PPU {
         val mirroredVaddr = addr and 0b10_1111_1111_1111u
         val ramOffset = mirroredVaddr - 0x2000u
         val tableIndex = ramOffset / 0x400u
-        return when (Pair(mirroring, tableIndex)) {
-            VERTICAL_TABLE2, VERTICAL_TABLE3 -> (ramOffset - 0x800u).toUShort()
-            HORIZONTAL_TABLE1 -> (ramOffset - 0x400u).toUShort()
-            HORIZONTAL_TABLE2 -> (ramOffset - 0x400u).toUShort()
-            HORIZONTAL_TABLE3 -> (ramOffset - 0x800u).toUShort()
+//        println("tableIndex: $tableIndex, mirroring: $mirroring")
+        val offset = when {
+            ((mirroring == Rom.Mirroring.VERTICAL) && (tableIndex == 2u))
+                    || ((mirroring == Rom.Mirroring.VERTICAL) && (tableIndex == 3u))
+            -> (ramOffset - 0x800u).toUShort()
+            mirroring == Rom.Mirroring.HORIZONTAL && tableIndex == 1u
+            -> (ramOffset - 0x400u).toUShort()
+            mirroring == Rom.Mirroring.HORIZONTAL && tableIndex == 2u
+            -> (ramOffset - 0x400u).toUShort()
+            mirroring == Rom.Mirroring.HORIZONTAL && tableIndex == 3u
+            -> (ramOffset - 0x800u).toUShort()
             else -> ramOffset.toUShort()
         }
+//        println("vaddr: ${Integer.toHexString(addr.toInt())}, " + "phyaddr: ${Integer.toHexString((offset + 0x2000u).toInt())}")
+        return (offset + 0x2000u).toUShort()
     }
 
     // REQUIRES: init() should be called before readUByte()
     fun readUByte(): UByte {
-        assert(::chrRom.isInitialized,
-            "read ppu addr before chrRom initialized")
+//        assert(::chrRom.isInitialized,
+//            "read ppu addr before chrRom initialized")
 
         val addr = addrReg.get()
         incAddrReg()
@@ -162,7 +203,7 @@ object PPU {
             // read ram (name tables)
             in 0x2000..0x2FFF -> {
                 val res = dataBuffer
-                dataBuffer = ram[addr.toInt() - 0x2000]
+                dataBuffer = ram[vaddrToPaddr(addr).toInt() - 0x2000]
                 res
             }
             in 0x3000..0x3eff -> unreachable(
@@ -180,8 +221,8 @@ object PPU {
 
     // REQUIRES: init() should be called before writeByte()
     fun writeUByte(value: UByte) {
-        assert(::chrRom.isInitialized,
-            "write ppu addr before chrRom initialized")
+//        assert(::chrRom.isInitialized,
+//            "write ppu addr before chrRom initialized")
 
         val addr = addrReg.get()
         incAddrReg()
@@ -192,8 +233,9 @@ object PPU {
                     "${Integer.toHexString(addr.toInt())} cannot be written")
             in 0x2000..0x2FFF -> {
                 if (!statusReg.getStatus(Flag.IGNORE_RAM_WRITE))
-                    ram[addr.toInt() - 0x2000] = value
+                    ram[vaddrToPaddr(addr).toInt() - 0x2000] = value
             }
+            in 0x3000..0x3eff -> {}
             in 0x3f00..0x3fff -> palettesTable[(addr.toInt() - 0x3f00)]
             else -> unreachable("unexpected ppu memory address" +
                     " ${Integer.toHexString(addr.toInt())}")

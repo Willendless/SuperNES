@@ -252,10 +252,10 @@ class CPUTest {
         cpu.sp = 0xfdu
         cpu.pc = 0xc000u
         try {
-            CPU.run(os = fileOutputStream)
+            CPU.run(os = System.out)
         } catch (e: NESException) {
             println(e.msg)
-            fail()
+            throw e
         } finally {
             fileOutputStream.close()
         }

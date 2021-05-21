@@ -15,10 +15,10 @@ import com.willendless.nes.framework.Screen
 @ExperimentalUnsignedTypes
 class LoadingAlterEgoScreen(game: Game): Screen(game) {
     override fun update(deltaTime: Float) {
-        val program = game.getFileIO().readAsset("testGames/AlterEgo.nes").readBytes().toUByteArray()
+        val program = game.getFileIO().readAsset("testGames/PacMan.nes").readBytes().toUByteArray()
         val rom = Rom(program)
         NESBus.init(rom)
-        PPU.init(rom)
+        CPU.reset()
         game.setScreen(AlterEgoMainScreen(game))
     }
 

@@ -58,6 +58,7 @@ class Rom(raw: UByteArray) {
         val chrRomBase = prgRomBase + prgRomSize
         prgRom = raw.slice(prgRomBase until prgRomBase + prgRomSize)
         chrRom = raw.slice(chrRomBase until chrRomBase + chrRomSize)
+        println("chr ROm size : ${chrRom.size}")
     }
 
     fun getPrgRomLen(): Int = prgRom.size

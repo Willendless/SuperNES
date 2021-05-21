@@ -1,5 +1,8 @@
 package com.willendless.nes.emulator.ppu
 
+import com.willendless.nes.emulator.util.unreachable
+import java.net.URLStreamHandler
+
 // 7  bit  0
 // ---- ----
 // VPHB SINN
@@ -31,6 +34,14 @@ enum class ControllerRegFlag(val mask: UByte) {
 
 @kotlin.ExperimentalUnsignedTypes
 object ControllerReg {
+    private const val NAME_TABLE_BASE0: UShort = 0x2000u
+    private const val NAME_TABLE_BASE1: UShort = 0x2400u
+    private const val NAME_TABLE_BASE2: UShort = 0x2800u
+    private const val NAME_TABLE_BASE3: UShort = 0x2C00u
+
+    private const val PATTERN_TABLE_BASE0: UShort = 0x0u
+    private const val PATTERN_TABLE_BASE1: UShort = 0x1000u
+
     private var reg: UByte = 0u.toUByte()
     fun set(i: UByte) {
         reg = i
@@ -39,5 +50,37 @@ object ControllerReg {
     fun get() = reg
 
     fun getFlag(flag: ControllerRegFlag): Boolean = reg and flag.mask != 0u.toUByte()
+
+    fun getNameTableBase(): UShort {
+        val lo = if (getFlag(ControllerRegFlag.NAME_TABLE_ADDR1)) 1 else 0
+        val hi = if (getFlag(ControllerRegFlag.NAME_TABLE_ADDR2)) 1 else 0
+        return when (hi * 2 + lo) {
+            0 -> NAME_TABLE_BASE0
+            1 -> NAME_TABLE_BASE1
+            2 -> NAME_TABLE_BASE2
+            3 -> NAME_TABLE_BASE3
+            else -> unreachable("Unknown nametable base flag")
+        }
+    }
+
+    enum class PatternTableKind {
+        BACKGROUND,
+        SPRITE
+    }
+
+    fun getBackgroundTableBase(patternTableKind: PatternTableKind): UShort {
+        val backgroundBase = getFlag(ControllerRegFlag.BACKGROUND_TABLE_BASE)
+        val spriteBase = getFlag(ControllerRegFlag.SPRITE_TABLE_BASE)
+        return when(patternTableKind) {
+            PatternTableKind.BACKGROUND -> if (backgroundBase) PATTERN_TABLE_BASE1 else PATTERN_TABLE_BASE0
+            PatternTableKind.SPRITE -> if (spriteBase) PATTERN_TABLE_BASE1 else PATTERN_TABLE_BASE0
+        }
+    }
+
+    fun getBackgroundTableBase(): UShort = if (getFlag(ControllerRegFlag.BACKGROUND_TABLE_BASE)) {
+        PATTERN_TABLE_BASE1
+    } else {
+        PATTERN_TABLE_BASE0
+    }
 }
 

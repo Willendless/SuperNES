@@ -9,19 +9,23 @@ import com.willendless.nes.emulator.util.unreachable
 object NESBus: Bus {
     private const val CPU_RAM_BASE: UShort = 0x0000u
     private const val CPU_RAM_END: UShort = 0x1FFFu
+
     private const val PPU_REGS_BASE: UShort = 0x2000u
     private const val PPU_REGS_END: UShort = 0x3FFFu
     private const val PRG_ROM_BASE: UShort = 0x8000u
     private const val PRG_ROM_END: UShort = 0xFFFFu
-    private const val PPU_CONTROL_REG_1: UShort = 0x2000u // write only
-    private const val PPU_CONTROL_REG_2: UShort = 0x2001u // write only
-    private const val PPU_STATUS_REG: UShort = 0x2002u // read only
-    private const val PPU_OAM_ADDRESS_REG: UShort = 0x2003u // write only
-    private const val PPU_OAM_DATA_REG: UShort = 0x2004u // read/write
-    private const val PPU_SCROLL: UShort = 0x2005u // write only
-    private const val PPU_ADDRESS_REG: UShort = 0x2006u // write only
-    private const val PPU_DATA_REG: UShort = 0x2007u // read/write
+    private const val PPU_CONTROL_REG_1: UShort = 0x0u // write only
+    private const val PPU_CONTROL_REG_2: UShort = 0x1u // write only
+    private const val PPU_STATUS_REG: UShort = 0x2u // read only
+    private const val PPU_OAM_ADDRESS_REG: UShort = 0x3u // write only
+    private const val PPU_OAM_DATA_REG: UShort = 0x4u // read/write
+    private const val PPU_SCROLL: UShort = 0x5u // write only
+    private const val PPU_ADDRESS_REG: UShort = 0x6u // write only
+    private const val PPU_DATA_REG: UShort = 0x7u // read/write
     private const val PPU_OAM_DMA: UShort = 0x4014u // write only
+
+    private const val APU_REGS_BASE: UShort = 0x4000u
+    private const val APU_REGS_END: UShort = 0x4013u
 
     private val cpuRAM = UByteArray(0x800)
     private var rom: Rom? = null
@@ -30,6 +34,7 @@ object NESBus: Bus {
 
     fun init(rom: Rom) {
         this.rom = rom
+        ppu.init(rom)
     }
 
     override fun readUByte(addr: UShort): UByte = when (addr) {
@@ -41,7 +46,7 @@ object NESBus: Bus {
             when (addr and 0b111u) {
                 PPU_CONTROL_REG_1, PPU_CONTROL_REG_2, PPU_OAM_ADDRESS_REG,
                 PPU_SCROLL, PPU_ADDRESS_REG,
-                PPU_OAM_DMA-> unreachable("Unable to read from write only register $addr")
+                PPU_OAM_DMA-> 0u
                 PPU_OAM_DATA_REG -> ppu.readOAMUByte()
                 PPU_STATUS_REG -> ppu.readStatusReg()
                 PPU_DATA_REG -> ppu.readUByte()
@@ -58,7 +63,12 @@ object NESBus: Bus {
             }
             unreachable("no rom in the system")
         }
-        else -> unreachable("bus can not handled addr $addr")
+        in APU_REGS_BASE..APU_REGS_END -> 0u
+        // DMA
+        in PPU_OAM_DMA..PPU_OAM_DMA -> 0u
+        // SND_CHN and JOYstick
+        in 0x4015u..0x4017u -> 0u
+        else -> unreachable("bus can not handled addr 0x${Integer.toHexString(addr.toInt())}")
     }
 
     override fun writeUByte(addr: UShort, data: UByte) {
@@ -84,7 +94,12 @@ object NESBus: Bus {
                 }
             }
             in PRG_ROM_BASE..PRG_ROM_END -> unreachable("unable to write to rom space")
-            else -> unreachable("bus can not handled addr $addr")
+            // DMA
+            in PPU_OAM_DMA..PPU_OAM_DMA -> {}
+            in APU_REGS_BASE..APU_REGS_END -> {}
+            // SND_CHN and JOYstick
+            in 0x4015u..0x4017u -> {}
+            else -> unreachable("bus can not handled addr 0x${Integer.toHexString(addr.toInt())}")
         }
     }
 
