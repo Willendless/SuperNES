@@ -2,12 +2,12 @@ package com.willendless.nes.emulator.ppu
 
 @ExperimentalUnsignedTypes
 object AddressReg {
-    val value = ubyteArrayOf(0x0u, 0x0u) // [high, low]
-    var waitLo = false
+    private val value = ubyteArrayOf(0x0u, 0x0u) // [high, low]
+    private var waitLo = false
 
     fun update(data: UByte) {
         if (!waitLo) {
-            value[0] = data and 0x2Fu
+            value[0] = data and 0x3Fu
         } else {
             value[1] = data
         }
@@ -15,8 +15,10 @@ object AddressReg {
     }
 
     fun inc(other: UByte) {
-        val res = get() + other
-        value[0] = ((res shr 8) and 0x2Fu).toUByte()
+        var res = get() + other
+        if (res > 0x3FFFu)
+            res = 0x2000u
+        value[0] = ((res shr 8) and 0x3Fu).toUByte()
         value[1] = (res and 0xFFu).toUByte()
     }
 

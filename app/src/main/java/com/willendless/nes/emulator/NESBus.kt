@@ -10,10 +10,11 @@ object NESBus: Bus {
     private const val CPU_RAM_BASE: UShort = 0x0000u
     private const val CPU_RAM_END: UShort = 0x1FFFu
 
-    private const val PPU_REGS_BASE: UShort = 0x2000u
-    private const val PPU_REGS_END: UShort = 0x3FFFu
     private const val PRG_ROM_BASE: UShort = 0x8000u
     private const val PRG_ROM_END: UShort = 0xFFFFu
+
+    private const val PPU_REGS_BASE: UShort = 0x2000u
+    private const val PPU_REGS_END: UShort = 0x3FFFu
     private const val PPU_CONTROL_REG_1: UShort = 0x0u // write only
     private const val PPU_CONTROL_REG_2: UShort = 0x1u // write only
     private const val PPU_STATUS_REG: UShort = 0x2u // read only

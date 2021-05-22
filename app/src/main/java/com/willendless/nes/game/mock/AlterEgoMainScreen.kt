@@ -20,7 +20,7 @@ import kotlin.system.exitProcess
 class AlterEgoMainScreen(game: Game): Screen(game) {
     override fun update(deltaTime: Float) {
         try {
-            CPU.run(500)
+            CPU.run(150)
         } catch (e: NESException) {
             Log.d("CPU", e.msg)
             throw e

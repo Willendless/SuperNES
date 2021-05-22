@@ -1,8 +1,13 @@
 package com.willendless.nes.emulator.cpu
 
+import android.os.Build
+import androidx.annotation.RequiresApi
 import com.willendless.nes.emulator.Bus
 import com.willendless.nes.emulator.NESBus
+import com.willendless.nes.emulator.ppu.PPU
 import com.willendless.nes.emulator.util.unreachable
+import com.willendless.nes.framework.Game
+import com.willendless.nes.framework.impl.AndroidGame
 import java.io.PrintStream
 import java.lang.StringBuilder
 
@@ -563,6 +568,7 @@ object CPU {
             // Handle NMI interrupt before interpret instructions
             if (bus.pollNMIStatus()) {
                 interruptNMI()
+                return
             }
 
             val code = fetchCode()
