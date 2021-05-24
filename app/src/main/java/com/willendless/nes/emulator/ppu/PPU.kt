@@ -71,6 +71,10 @@ object PPU {
         return triggered
     }
 
+    fun dma(buf: UByteArray) {
+        buf.copyInto(oam, 0)
+    }
+
     fun writeAddrReg(value: UByte) {
         addrReg.update(value)
     }

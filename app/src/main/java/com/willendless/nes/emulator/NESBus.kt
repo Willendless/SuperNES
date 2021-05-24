@@ -46,8 +46,7 @@ object NESBus: Bus {
         in PPU_REGS_BASE..PPU_REGS_END -> {
             when (addr and 0b111u) {
                 PPU_CONTROL_REG_1, PPU_CONTROL_REG_2, PPU_OAM_ADDRESS_REG,
-                PPU_SCROLL, PPU_ADDRESS_REG,
-                PPU_OAM_DMA-> 0u
+                PPU_SCROLL, PPU_ADDRESS_REG -> unreachable("Unable to read from write only registers")
                 PPU_OAM_DATA_REG -> ppu.readOAMUByte()
                 PPU_STATUS_REG -> ppu.readStatusReg()
                 PPU_DATA_REG -> ppu.readUByte()
@@ -65,8 +64,7 @@ object NESBus: Bus {
             unreachable("no rom in the system")
         }
         in APU_REGS_BASE..APU_REGS_END -> 0u
-        // DMA
-        in PPU_OAM_DMA..PPU_OAM_DMA -> 0u
+        in PPU_OAM_DMA..PPU_OAM_DMA -> unreachable("Unable to read from write only OAM DMA Reg")
         // SND_CHN and JOYstick
         in 0x4015u..0x4017u -> 0u
         else -> unreachable("bus can not handled addr 0x${Integer.toHexString(addr.toInt())}")
@@ -96,7 +94,14 @@ object NESBus: Bus {
             }
             in PRG_ROM_BASE..PRG_ROM_END -> unreachable("unable to write to rom space")
             // DMA
-            in PPU_OAM_DMA..PPU_OAM_DMA -> {}
+            in PPU_OAM_DMA..PPU_OAM_DMA -> {
+                val buf = UByteArray(0xFF)
+                val base = data.toInt() shl 8
+                for (i in 0 until 0xFF) {
+                    buf[i] = readUByte((base + i).toUShort())
+                }
+                ppu.dma(buf)
+            }
             in APU_REGS_BASE..APU_REGS_END -> {}
             // SND_CHN and JOYstick
             in 0x4015u..0x4017u -> {}
