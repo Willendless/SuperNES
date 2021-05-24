@@ -68,7 +68,7 @@ object ControllerReg {
         SPRITE
     }
 
-    fun getBackgroundTableBase(patternTableKind: PatternTableKind): UShort {
+    fun getPatternTableBase(patternTableKind: PatternTableKind): UShort {
         val backgroundBase = getFlag(ControllerRegFlag.BACKGROUND_TABLE_BASE)
         val spriteBase = getFlag(ControllerRegFlag.SPRITE_TABLE_BASE)
         return when(patternTableKind) {

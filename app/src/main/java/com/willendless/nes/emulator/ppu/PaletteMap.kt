@@ -43,7 +43,6 @@ object PaletteMap {
       Color.valueOf(0xFF.toFloat(), 0xFF.toFloat(), 0xFF.toFloat()),
       Color.valueOf(0x0F.toFloat(), 0xD7.toFloat(), 0xFF.toFloat()),
       Color.valueOf(0x69.toFloat(), 0xA2.toFloat(), 0xFF.toFloat()),
-
       Color.valueOf(0xD4.toFloat(), 0x80.toFloat(), 0xFF.toFloat()),
       Color.valueOf(0xFF.toFloat(), 0x45.toFloat(), 0xF3.toFloat()),
       Color.valueOf(0xFF.toFloat(), 0x61.toFloat(), 0x8B.toFloat()),

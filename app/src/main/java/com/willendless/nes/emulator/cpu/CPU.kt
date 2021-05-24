@@ -2,9 +2,11 @@ package com.willendless.nes.emulator.cpu
 
 import android.os.Build
 import androidx.annotation.RequiresApi
+import com.willendless.nes.BuildConfig
 import com.willendless.nes.emulator.Bus
 import com.willendless.nes.emulator.NESBus
 import com.willendless.nes.emulator.ppu.PPU
+import com.willendless.nes.emulator.util.nesAssert
 import com.willendless.nes.emulator.util.unreachable
 import com.willendless.nes.framework.Game
 import com.willendless.nes.framework.impl.AndroidGame
@@ -32,7 +34,7 @@ object CPU {
     }
 
     fun load(program: UByteArray, offset: Int) {
-        // insert cartridge
+        nesAssert(offset in 1..0x1fff, "load can only used for memory image")
         bus.populate(program, offset)
     }
 

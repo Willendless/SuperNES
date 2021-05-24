@@ -4,6 +4,7 @@ import android.os.Build
 import android.util.Log
 import androidx.annotation.RequiresApi
 import com.willendless.nes.emulator.Rom
+import com.willendless.nes.emulator.util.nesAssert
 import com.willendless.nes.emulator.util.unreachable
 import com.willendless.nes.framework.Graphics
 
@@ -13,12 +14,12 @@ object PPU {
     // chrRom: 0x0..0x2000
     lateinit var chrRom: List<UByte>
     // ram: 0x2000..0x2800..mirror to..0x3F00
-    private val ram: UByteArray = UByteArray(2048)
+    private val ram: UByteArray = UByteArray(0x800)
     // palettes: 0x3F00..0x3F20..mirror to..0x4000
     private val palettesTable: UByteArray = UByteArray(32)
     // oam: ppu internal memory
     private val oam: UByteArray = UByteArray(256)
-    private lateinit var mirroring: Rom.Mirroring
+    private var mirroring: Rom.Mirroring = Rom.Mirroring.HORIZONTAL
     // registers
     private var addrReg = AddressReg
     private val controlReg1 = ControllerReg
@@ -39,7 +40,7 @@ object PPU {
 
     fun init(rom: Rom) {
         chrRom = rom.getChrRom()
-        mirroring = rom.getScreenMirroing()
+        mirroring = rom.getScreenMirroring()
     }
 
     fun tick(deltaCycles: Int) {
@@ -118,9 +119,10 @@ object PPU {
     // Render screen according to ppu vram.
     @RequiresApi(Build.VERSION_CODES.O)
     fun render(graphics: Graphics) {
-        val nameTableBank = controlReg1.getNameTableBase()
+        val nameTableBase = vaddrToPaddr(controlReg1.getNameTableBase()).toInt() - 0x2000
+//        Log.d("render", "name table base ${Integer.toHexString(nameTableBase.toInt())}")
         val backgroundBank = controlReg1.
-            getBackgroundTableBase(ControllerReg.PatternTableKind.BACKGROUND)
+            getPatternTableBase(ControllerReg.PatternTableKind.BACKGROUND)
 
         // render background
         for (i in 0 until 0x3C0) {
@@ -138,44 +140,52 @@ object PPU {
         val base = bank + tileIndex * 16
         val tile = chrRom.slice(base until base + 16)
         for (r in 0 until 8) {
-            var upper = tile[r].toInt()
-            var lower = tile[r + 8].toInt()
+            var lower = tile[r].toInt()
+            var upper = tile[r + 8].toInt()
             val paletteTable = getPaletteTable(tileX, tileY)
             for (p in (0 until 8).reversed()) {
                 val index = ((1 and upper) shl 1) or (1 and lower)
+                val color = PaletteMap.getColor(paletteTable[index].toInt())
+                graphics.drawPixel(tileX * 8 + p, tileY * 8 + r, color.toArgb())
                 lower = lower shr 1
                 upper = upper shr 1
-                val color = when (index) {
-                    0 -> PaletteMap.getColor(paletteTable[0].toInt())
-                    1 -> PaletteMap.getColor(paletteTable[1].toInt())
-                    2 -> PaletteMap.getColor(paletteTable[2].toInt())
-                    3 -> PaletteMap.getColor(paletteTable[3].toInt())
-//                      0 -> PaletteMap.getColor(0x13)
-//                    1 -> PaletteMap.getColor(0x26)
-//                    2 -> PaletteMap.getColor(0x38)
-//                    3 -> PaletteMap.getColor(0x7)
-
-                    else -> unreachable("Unknown palette index")
-                }
-//                println("$color")
-                graphics.drawPixel(tileX * 8 + p, tileY * 8 + r, color.toArgb())
             }
         }
     }
 
-    // Get palette from palette table using 4x4 tile coordinates
+    // Get palette from palette table using 4x4 tile coordinates and 64B table following name table
     private fun getPaletteTable(tileX: Int , tileY: Int): UByteArray {
-        val x = tileX % 8
-        val y = tileY / 8
-        val n = y * 8 + x
-        // find palette table index
-        val index = (palettesTable[n].toInt() shr (x % 2 + y % 2 * 2) and 0b11)
-        val base = index * 4 + 1
-        return ubyteArrayOf(palettesTable[0], palettesTable[base], palettesTable[base + 1], palettesTable[base + 2])
+        val attributeTableIndex = tileX / 4 + tileY / 4 * 8
+        nesAssert(attributeTableIndex < 64,
+            "invalid index $attributeTableIndex palette name table is only 64B")
+
+        val attributeByte = ram[0x3C0 + attributeTableIndex]
+        // find attribute table index
+        val x = tileX % 4 / 2
+        val y = tileY % 4 / 2
+        val palletIndex = when {
+            x == 0 && y == 0 -> attributeByte.toInt() and 0b11
+            x == 1 && y == 0 -> attributeByte.toInt() shr 2 and 0b11
+            x == 0 && y == 1 -> attributeByte.toInt() shr 4 and 0b11
+            x == 1 && y == 1 -> attributeByte.toInt() shr 6 and 0b11
+            else -> unreachable("")
+        }
+//        val index = (attributeByte.toInt() shr (tileX % 4 / 2 + tileY % 4 / 2 * 2) * 2) and 0b11
+        val base = palletIndex * 4 + 1
+        return ubyteArrayOf(palettesTable[0], palettesTable[base],
+            palettesTable[base + 1], palettesTable[base + 2])
     }
 
-    // Transit virtual address of ram (name table) to  address
-    fun vaddrToPaddr(addr: UShort): UShort {
+    // Provided to ppu test
+    fun setMirroring(mirroring: Rom.Mirroring) {
+        this.mirroring = mirroring
+    }
+
+    // Transit virtual address of ram (name table) to address
+    // This method is for ppu RAM read and write
+    private fun vaddrToPaddr(addr: UShort): UShort {
+        nesAssert(addr in 0x2000u..0x3EFFu, "invalid vaddr waiting to be transformed")
+
         val mirroredVaddr = addr and 0b10_1111_1111_1111u
         val ramOffset = mirroredVaddr - 0x2000u
         val tableIndex = ramOffset / 0x400u
@@ -194,58 +204,53 @@ object PPU {
         return (offset + 0x2000u).toUShort()
     }
 
-    // REQUIRES: init() should be called before readUByte()
     fun readUByte(): UByte {
-//        assert(::chrRom.isInitialized,
-//            "read ppu addr before chrRom initialized")
-
         val addr = addrReg.get()
         incAddrReg()
 
         return when (addr.toInt()) {
             // read chr rom (pattern tables)
             in 0..0x1FFF -> {
+                nesAssert(::chrRom.isInitialized,
+                    "read ppu data before chrRom initialized")
                 val res = dataBuffer
                 dataBuffer = chrRom[addr.toInt()]
                 res
             }
             // read ram (name tables)
-            in 0x2000..0x2FFF -> {
+            in 0x2000..0x3EFF -> {
+                val mirroredAddr = addr and 0x2FFFu
                 val res = dataBuffer
-                dataBuffer = ram[vaddrToPaddr(addr).toInt() - 0x2000]
+                dataBuffer = ram[vaddrToPaddr(mirroredAddr).toInt() - 0x2000]
                 res
             }
-            in 0x3000..0x3eff -> unreachable(
-                "ppu mem space 0x3000..0x3eff not used, requested = ${
-                    Integer.toHexString(
-                        addr.toInt()
-                    )
-                }"
-            )
-            in 0x3f00..0x3fff -> palettesTable[(addr.toInt() - 0x3f00) and 0x1F]
+            in 0x3f00..0x3fff -> {
+                val mirroredAddr = addr and 0x3F1Fu
+                palettesTable[(mirroredAddr.toInt() - 0x3f00) and 0x1F]
+            }
             else -> unreachable("unexpected ppu memory address" +
                     " ${Integer.toHexString(addr.toInt())}")
         }
     }
 
-    // REQUIRES: init() should be called before writeByte()
     fun writeUByte(value: UByte) {
-
         val addr = addrReg.get()
         incAddrReg()
-//        Log.d("write ppu addr", Integer.toHexString(addr.toInt()))
 
         when (addr.toInt()) {
-            // write chr rom
+            // todo: fix bug here
             in 0..0x1FFF -> {}
 //                unreachable("chr rom addr: " +
 //                    "${Integer.toHexString(addr.toInt())} cannot be written")
-            in 0x2000..0x2FFF -> {
+            in 0x2000..0x3EFF -> {
+                val mirroredAddr = addr and 0x2FFFu
                 if (!statusReg.getStatus(Flag.IGNORE_RAM_WRITE))
-                    ram[vaddrToPaddr(addr).toInt() - 0x2000] = value
+                    ram[vaddrToPaddr(mirroredAddr).toInt() - 0x2000] = value
             }
-            in 0x3000..0x3eff -> {}
-            in 0x3f00..0x3fff -> palettesTable[(addr.toInt() - 0x3f00) and 0x1F] = value
+            in 0x3f00..0x3fff -> {
+                val mirroredAddr = addr and 0x3F1Fu
+                palettesTable[(mirroredAddr.toInt() - 0x3f00) and 0x1F] = value
+            }
             else -> unreachable("unexpected ppu memory address" +
                     " ${Integer.toHexString(addr.toInt())}")
         }

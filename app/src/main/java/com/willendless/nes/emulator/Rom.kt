@@ -52,13 +52,17 @@ class Rom(raw: UByteArray) {
 
         val prgRomSize = prgRomBankNum.toInt() * PRG_BANK_SIZE
         val chrRomSize = chrRomBankNum.toInt() * CHR_BANK_SIZE
+        println("mirroring : ${screenMirroring}," +
+                " prgRomBankNum: $prgRomBankNum" +
+                " prgRomsize: $prgRomSize" +
+                " chrRomBankNum: $chrRomBankNum" +
+                " chrRomsize: $chrRomSize")
 
         val skipTrainer = control1 and 0b100u != 0.toUByte()
         val prgRomBase = 16 + if (skipTrainer) 512 else 0
         val chrRomBase = prgRomBase + prgRomSize
         prgRom = raw.slice(prgRomBase until prgRomBase + prgRomSize)
         chrRom = raw.slice(chrRomBase until chrRomBase + chrRomSize)
-        println("chr ROm size : ${chrRom.size}")
     }
 
     fun getPrgRomLen(): Int = prgRom.size
@@ -67,5 +71,5 @@ class Rom(raw: UByteArray) {
 
     fun getChrRom(): List<UByte> = chrRom
 
-    fun getScreenMirroing(): Mirroring = screenMirroring
+    fun getScreenMirroring(): Mirroring = screenMirroring
 }
