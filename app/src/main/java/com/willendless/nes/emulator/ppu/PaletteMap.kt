@@ -23,7 +23,7 @@ object PaletteMap {
       Color.valueOf(0x00.toFloat(), 0x41.toFloat(), 0x66.toFloat()),
       Color.valueOf(0x00.toFloat(), 0x00.toFloat(), 0x00.toFloat()),
       Color.valueOf(0x05.toFloat(), 0x05.toFloat(), 0x05.toFloat()),
-      Color.valueOf(0x05.toFloat(), 0x05.toFloat(), 0x05.toFloat()),
+      Color.valueOf(0x00.toFloat(), 0x00.toFloat(), 0x00.toFloat()),
       Color.valueOf(0xC7.toFloat(), 0xC7.toFloat(), 0xC7.toFloat()),
       Color.valueOf(0x00.toFloat(), 0x77.toFloat(), 0xFF.toFloat()),
       Color.valueOf(0x21.toFloat(), 0x55.toFloat(), 0xFF.toFloat()),

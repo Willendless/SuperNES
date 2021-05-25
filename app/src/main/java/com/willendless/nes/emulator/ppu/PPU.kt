@@ -120,45 +120,112 @@ object PPU {
         }
     }
 
+    enum class RenderKind {
+        BACK_GROUND,
+        SPRITE
+    }
+
     // Render screen according to ppu vram.
     @RequiresApi(Build.VERSION_CODES.O)
     fun render(graphics: Graphics) {
         val nameTableBase = vaddrToPaddr(controlReg1.getNameTableBase()).toInt() - 0x2000
 //        Log.d("render", "name table base ${Integer.toHexString(nameTableBase.toInt())}")
+        Log.d("render", "tick")
         val backgroundBank = controlReg1.
             getPatternTableBase(ControllerReg.PatternTableKind.BACKGROUND)
+        val spriteBank = controlReg1.
+            getPatternTableBase(ControllerReg.PatternTableKind.SPRITE)
 
         // render background
         for (i in 0 until 0x3C0) {
             val tileIndex = ram[i].toInt()
             val tileY = i / 32
             val tileX = i % 32
-            renderTile(tileX, tileY, backgroundBank.toInt(), tileIndex, graphics)
+            renderBackgroundTile(tileX, tileY, backgroundBank.toInt(), tileIndex, graphics)
         }
-        // todo: render sprite
+        // render sprite
+        for (i in oam.indices step 4) {
+            val tileX = oam[i + 3].toInt()
+            val tileY = oam[i].toInt()
+            val tileIndex = oam[i + 1].toInt()
+            val attr = oam[i + 2].toInt()
+            val flipHorizontal = (attr shr 6 and 1) != 0
+            val flipVertical = (attr shr 7 and 1) != 0
+            val platteIndex = attr and 0b11
+            renderSpriteTile(tileX, tileY, spriteBank.toInt(), tileIndex, platteIndex,
+                flipHorizontal, flipVertical, graphics)
+        }
+    }
+
+    // Byte 0: Y position of top of sprite
+    // Byte 1: tile index number within the pattern table
+    // Byte 2:
+    //    76543210
+    //    ||||||||
+    //    ||||||++- Palette (4 to 7) of sprite
+    //    |||+++--- Unimplemented
+    //    ||+------ Priority (0: in front of background; 1: behind background)
+    //    |+------- Flip sprite horizontally
+    //    +-------- Flip sprite vertically
+    // Byte 3: X position of top of sprite
+    @RequiresApi(Build.VERSION_CODES.O)
+    private fun renderSpriteTile(tileX: Int, tileY: Int, bank: Int,
+                                 tileIndex: Int, platteIndex: Int,
+                                 isFlipHorizontal: Boolean,
+                                 isFlipVertical: Boolean, graphics: Graphics) {
+        val tileBase = (bank + tileIndex * 16) % chrRom.size
+        val tile = chrRom.slice(tileBase until tileBase + 16)
+        val platteTable = getSpritePaletteTable(platteIndex)
+        for (r in 0 until 8) {
+            var lower = tile[r].toInt()
+            var upper = tile[r + 8].toInt()
+            for (p in (0 until 8).reversed()) {
+                val index = ((1 and upper) shl 1) or (1 and lower)
+                if (index == 0) continue
+                lower = lower shr 1
+                upper = upper shr 1
+                val color = PaletteMap.getColor(platteTable[index].toInt())
+                when {
+                    !isFlipHorizontal && !isFlipVertical ->
+                        graphics.drawPixel(tileX + p, tileY + r, color.toArgb())
+                    isFlipHorizontal && !isFlipVertical ->
+                        graphics.drawPixel(tileX + 7 - p, tileY + r, color.toArgb())
+                    !isFlipHorizontal && isFlipVertical ->
+                        graphics.drawPixel(tileX + p, tileY + 7 - r, color.toArgb())
+                    isFlipHorizontal && isFlipVertical ->
+                        graphics.drawPixel(tileX + 7 - p, tileY + 7 - r, color.toArgb())
+                }
+            }
+        }
+    }
+
+    private fun getSpritePaletteTable(platteIndex: Int): UByteArray {
+        val base = 0x11 + 4 * platteIndex
+        return ubyteArrayOf(palettesTable[0], palettesTable[base],
+                palettesTable[base + 1], palettesTable[base + 2])
     }
 
     // REQUIRES: bank ==
     @RequiresApi(Build.VERSION_CODES.O)
-    private fun renderTile(tileX: Int, tileY: Int, bank: Int, tileIndex: Int, graphics: Graphics) {
-        val base = bank + tileIndex * 16
+    private fun renderBackgroundTile(tileX: Int, tileY: Int, bank: Int, tileIndex: Int, graphics: Graphics) {
+        val base = (bank + tileIndex * 16) % chrRom.size
         val tile = chrRom.slice(base until base + 16)
+        val paletteTable = getBackgroundPaletteTable(tileX, tileY)
         for (r in 0 until 8) {
             var lower = tile[r].toInt()
             var upper = tile[r + 8].toInt()
-            val paletteTable = getPaletteTable(tileX, tileY)
             for (p in (0 until 8).reversed()) {
                 val index = ((1 and upper) shl 1) or (1 and lower)
-                val color = PaletteMap.getColor(paletteTable[index].toInt())
-                graphics.drawPixel(tileX * 8 + p, tileY * 8 + r, color.toArgb())
                 lower = lower shr 1
                 upper = upper shr 1
+                val color = PaletteMap.getColor(paletteTable[index].toInt())
+                graphics.drawPixel(tileX * 8 + p, tileY * 8 + r, color.toArgb())
             }
         }
     }
 
     // Get palette from palette table using 4x4 tile coordinates and 64B table following name table
-    private fun getPaletteTable(tileX: Int , tileY: Int): UByteArray {
+    private fun getBackgroundPaletteTable(tileX: Int , tileY: Int): UByteArray {
         val attributeTableIndex = tileX / 4 + tileY / 4 * 8
         nesAssert(attributeTableIndex < 64,
             "invalid index $attributeTableIndex palette name table is only 64B")
@@ -174,7 +241,7 @@ object PPU {
             x == 1 && y == 1 -> attributeByte.toInt() shr 6 and 0b11
             else -> unreachable("")
         }
-//        val index = (attributeByte.toInt() shr (tileX % 4 / 2 + tileY % 4 / 2 * 2) * 2) and 0b11
+
         val base = palletIndex * 4 + 1
         return ubyteArrayOf(palettesTable[0], palettesTable[base],
             palettesTable[base + 1], palettesTable[base + 2])
