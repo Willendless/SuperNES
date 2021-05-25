@@ -70,6 +70,7 @@ object NESBus: Bus {
         else -> unreachable("bus can not handled addr 0x${Integer.toHexString(addr.toInt())}")
     }
 
+    private val buf = UByteArray(0xFF)
     override fun writeUByte(addr: UShort, data: UByte) {
         when (addr) {
             in CPU_RAM_BASE..CPU_RAM_END -> {
@@ -95,7 +96,6 @@ object NESBus: Bus {
             in PRG_ROM_BASE..PRG_ROM_END -> unreachable("unable to write to rom space")
             // DMA
             in PPU_OAM_DMA..PPU_OAM_DMA -> {
-                val buf = UByteArray(0xFF)
                 val base = data.toInt() shl 8
                 for (i in 0 until 0xFF) {
                     buf[i] = readUByte((base + i).toUShort())
