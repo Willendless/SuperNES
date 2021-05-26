@@ -130,11 +130,13 @@ object PPU {
     fun render(graphics: Graphics) {
         val nameTableBase = vaddrToPaddr(controlReg1.getNameTableBase()).toInt() - 0x2000
 //        Log.d("render", "name table base ${Integer.toHexString(nameTableBase.toInt())}")
-        Log.d("render", "tick")
+//        Log.d("render", "tick")
         val backgroundBank = controlReg1.
             getPatternTableBase(ControllerReg.PatternTableKind.BACKGROUND)
         val spriteBank = controlReg1.
             getPatternTableBase(ControllerReg.PatternTableKind.SPRITE)
+
+//        Log.d("sprite table base", "${Integer.toHexString(spriteBank.toInt())}")
 
         // render background
         for (i in 0 until 0x3C0) {
@@ -181,7 +183,7 @@ object PPU {
             var upper = tile[r + 8].toInt()
             for (p in (0 until 8).reversed()) {
                 val index = ((1 and upper) shl 1) or (1 and lower)
-                if (index == 0) continue
+//                if (index == 0) continue
                 lower = lower shr 1
                 upper = upper shr 1
                 val color = PaletteMap.getColor(platteTable[index].toInt())

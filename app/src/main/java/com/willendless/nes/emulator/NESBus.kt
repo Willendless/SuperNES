@@ -32,6 +32,7 @@ object NESBus: Bus {
     private var rom: Rom? = null
     private val ppu =  PPU
     private var cycles = 0
+    private var joypad = Joypads
 
     fun init(rom: Rom) {
         this.rom = rom
@@ -66,8 +67,10 @@ object NESBus: Bus {
         in APU_REGS_BASE..APU_REGS_END -> 0u
         in PPU_OAM_DMA..PPU_OAM_DMA -> unreachable("Unable to read from write only OAM DMA Reg")
         // SND_CHN and JOYstick
-        in 0x4015u..0x4017u -> 0u
-        else -> unreachable("bus can not handled addr 0x${Integer.toHexString(addr.toInt())}")
+        in 0x4015u..0x4015u -> 0u
+        in 0x4016u..0x4016u -> joypad.read()
+        in 0x4017u..0x4017u -> 0u
+        else -> unreachable("bus read can not handled addr 0x${Integer.toHexString(addr.toInt())}")
     }
 
     private val buf = UByteArray(0xFF)
@@ -104,7 +107,9 @@ object NESBus: Bus {
             }
             in APU_REGS_BASE..APU_REGS_END -> {}
             // SND_CHN and JOYstick
-            in 0x4015u..0x4017u -> {}
+            in 0x4015u..0x4015u -> {}
+            in 0x4016u..0x4016u -> joypad.write(data)
+            in 0x4017u..0x4017u -> {}
             else -> unreachable("bus can not handled addr 0x${Integer.toHexString(addr.toInt())}")
         }
     }

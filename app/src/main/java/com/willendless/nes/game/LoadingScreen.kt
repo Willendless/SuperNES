@@ -7,10 +7,11 @@ import com.willendless.nes.framework.Screen
 // Then we will transit to the MainScreen according to game name.
 // Only update method is used.
 class LoadingScreen(game: Game): Screen(game) {
-    override fun update(deltaTime: Float) {
+    override fun update(deltaTime: Float): Boolean {
         // todo(ljr): initialize game assets and settings
         // todo(ljr): dispatch according to game name
         game.setScreen(MainScreen(game))
+        return false
     }
 
     override fun present(deltaTime: Float) {

@@ -12,12 +12,13 @@ import com.willendless.nes.framework.Screen
 @ExperimentalStdlibApi
 @ExperimentalUnsignedTypes
 class LoadingSnakeScreen(game: Game): Screen(game) {
-    override fun update(deltaTime: Float) {
+    override fun update(deltaTime: Float): Boolean {
         val program = game.getFileIO().readAsset("testGames/snake.nes").readBytes().toUByteArray()
         val rom = Rom(program)
         NESBus.init(rom)
         CPU.reset()
         game.setScreen(SnakeMainScreen(game))
+        return false
     }
 
     override fun present(deltaTime: Float) {

@@ -557,20 +557,20 @@ object CPU {
 
     // Run game in the memory begin from 0x8000.
     // For each instruction, check NMI interrupt before interpreted each instruction
-    fun run(timeoutMs: Long = 10_000, maxStep: Long = 10_000, os: PrintStream? = null) {
+    fun run(timeoutMs: Long = 20_000, maxStep: Long = 10_000, os: PrintStream? = null): Boolean {
         var curStep = 0
         val startTime = System.nanoTime() / 1000_000
         while (true) {
             val curTime = System.nanoTime() / 1000_000
             if (curTime - startTime > timeoutMs || curStep >= maxStep)
-                break
+                return false
 
             curStep += 1
 
             // Handle NMI interrupt before interpret instructions
             if (bus.pollNMIStatus()) {
                 interruptNMI()
-                return
+                return true
             }
 
             val code = fetchCode()

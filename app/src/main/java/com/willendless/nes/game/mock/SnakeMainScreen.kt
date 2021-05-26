@@ -4,15 +4,17 @@ import android.graphics.Color.*
 import android.util.Log
 import com.willendless.nes.emulator.NESBus
 import com.willendless.nes.emulator.cpu.CPU
+import com.willendless.nes.emulator.util.NESException
 import com.willendless.nes.framework.Game
 import com.willendless.nes.framework.Input
 import com.willendless.nes.framework.Screen
 import java.util.*
+import kotlin.system.exitProcess
 
 @ExperimentalUnsignedTypes
 @ExperimentalStdlibApi
 class SnakeMainScreen(game: Game): Screen(game) {
-    override fun update(deltaTime: Float) {
+    override fun update(deltaTime: Float): Boolean {
         val keyEvents = game.getInput().getKeyEvents()
         var i = 0
         while (i < keyEvents.size) {
@@ -33,7 +35,13 @@ class SnakeMainScreen(game: Game): Screen(game) {
             i++
         }
         NESBus.writeUByte(0xfeu, (Random().nextInt(16) + 1).toUByte())
-        CPU.run(3)
+        try {
+            CPU.run(3)
+        } catch (e: NESException) {
+            Log.e("", e.msg)
+            exitProcess(-1)
+        }
+        return true
     }
 
     private fun getColor(byte: Int) = when (byte) {

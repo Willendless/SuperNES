@@ -14,12 +14,13 @@ import com.willendless.nes.framework.Screen
 @ExperimentalStdlibApi
 @ExperimentalUnsignedTypes
 class LoadingAlterEgoScreen(game: Game): Screen(game) {
-    override fun update(deltaTime: Float) {
-        val program = game.getFileIO().readAsset("testGames/PacMan.nes").readBytes().toUByteArray()
+    override fun update(deltaTime: Float): Boolean {
+        val program = game.getFileIO().readAsset("testGames/Chase.nes").readBytes().toUByteArray()
         val rom = Rom(program)
         NESBus.init(rom)
         CPU.reset()
         game.setScreen(AlterEgoMainScreen(game))
+        return false
     }
 
     override fun present(deltaTime: Float) {

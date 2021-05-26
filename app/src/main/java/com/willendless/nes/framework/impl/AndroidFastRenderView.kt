@@ -20,13 +20,15 @@ class AndroidFastRenderView(val game: AndroidGame, val frameBuffer: Bitmap): Sur
             val deltaTime = (System.nanoTime() - startTime) / 1000000000.0F
             startTime = System.nanoTime()
 
-            game.getCurrentScreen().update(deltaTime)
-            game.getCurrentScreen().present(deltaTime)
+            val draw = game.getCurrentScreen().update(deltaTime)
 
-            val canvas = viewHolder.lockCanvas()
-            canvas.getClipBounds(dstRect)
-            canvas.drawBitmap(frameBuffer, null, dstRect, null)
-            holder.unlockCanvasAndPost(canvas)
+            if (draw) {
+                game.getCurrentScreen().present(deltaTime)
+                val canvas = viewHolder.lockCanvas()
+                canvas.getClipBounds(dstRect)
+                canvas.drawBitmap(frameBuffer, null, dstRect, null)
+                holder.unlockCanvasAndPost(canvas)
+            }
         }
     }
 
