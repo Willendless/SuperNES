@@ -23,4 +23,8 @@ object AddressReg {
     }
 
     fun get(): UShort = (value[0].toInt() shl 8).toUShort() or value[1].toUShort()
+    fun clear() {
+        value[0] = 0u
+        value[1] = 1u
+    }
 }

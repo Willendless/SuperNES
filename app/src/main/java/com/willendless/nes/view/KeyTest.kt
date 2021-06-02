@@ -26,7 +26,7 @@ class KeyTest: AppCompatActivity(), View.OnKeyListener  {
         if (event != null) {
             builder.setLength(0)
             when (event.action) {
-                KeyEvent.ACTION_UP -> return false
+                KeyEvent.ACTION_UP -> builder.append("up, ")
                 KeyEvent.ACTION_DOWN -> builder.append("down, ")
             }
             builder.append(event.keyCode)

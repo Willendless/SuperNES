@@ -24,9 +24,6 @@ abstract class AndroidGame: AppCompatActivity(), Game {
 
         Log.d("Game", "create")
         requestWindowFeature(Window.FEATURE_NO_TITLE)
-        window.decorView.windowInsetsController!!.hide(
-                WindowInsets.Type.statusBars()
-                        or WindowInsets.Type.navigationBars())
 
         // snake game resolution
 //        val frameBufferWidth = 32

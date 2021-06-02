@@ -43,6 +43,20 @@ object PPU {
         mirroring = rom.getScreenMirroring()
     }
 
+    fun reset() {
+        ram.fill(0u)
+        palettesTable.fill(0u)
+        addrReg.clear()
+        controlReg1.set(0u)
+        controlReg2.set(0u)
+        statusReg.clear()
+        oamAddrReg = 0u
+        scrollReg = 0u
+        dataBuffer = 0u
+        cycles = 0
+        scanLine = 0
+    }
+
     fun tick(deltaCycles: Int) {
         cycles += deltaCycles
         if (cycles >= SCAN_LINE_CYCLES_CNT) {

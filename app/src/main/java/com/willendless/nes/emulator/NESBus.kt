@@ -1,5 +1,6 @@
 package com.willendless.nes.emulator
 
+import com.willendless.nes.emulator.cpu.CPU
 import com.willendless.nes.emulator.ppu.PPU
 import com.willendless.nes.emulator.ppu.Flag
 import com.willendless.nes.emulator.util.unreachable
@@ -123,7 +124,10 @@ object NESBus: Bus {
     }
 
     override fun clear() {
+        cycles = 0
         cpuRAM.fill(0u)
+        CPU.reset()
+        PPU.reset()
     }
 
     override fun tick(cycles: Int) {

@@ -37,4 +37,7 @@ object StatusReg {
     fun setStatus(flag: Flag, value: Boolean) {
         reg = if (value) reg or flag.mask else reg and flag.mask.inv()
     }
+    fun clear() {
+        reg = 0u
+    }
 }

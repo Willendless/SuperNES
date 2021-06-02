@@ -1,6 +1,8 @@
 package com.willendless.nes.framework.impl
 
 import android.graphics.Bitmap
+import android.graphics.Color
+import android.graphics.Paint
 import android.graphics.Rect
 import android.view.SurfaceHolder
 import android.view.SurfaceView
@@ -26,7 +28,22 @@ class AndroidFastRenderView(val game: AndroidGame, val frameBuffer: Bitmap): Sur
                 game.getCurrentScreen().present(deltaTime)
                 val canvas = viewHolder.lockCanvas()
                 canvas.getClipBounds(dstRect)
+                val right = dstRect.right.toFloat()
+                val bottom = dstRect.bottom.toFloat()
+                // game panel
+                dstRect.set(0, 0, dstRect.right, dstRect.bottom / 4 * 3)
                 canvas.drawBitmap(frameBuffer, null, dstRect, null)
+                // todo: up, down, left, right
+                // todo: A, B
+                // start
+                val paint = Paint()
+                paint.color = Color.BLUE
+                canvas.drawRect(right / 4 * 3, bottom / 4 * 3,
+                    right, bottom / 8 * 7, paint)
+                // select
+                paint.color = Color.RED
+                canvas.drawRect(right / 4 * 3, bottom / 8 * 7,
+                    right, bottom, paint)
                 holder.unlockCanvasAndPost(canvas)
             }
         }

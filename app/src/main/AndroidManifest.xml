@@ -34,6 +34,7 @@
         <activity android:name=".view.RenderViewTest" />
         <activity android:name=".view.FullScreenTest" />
         <activity android:name=".view.AssetsTest" />
+        <activity android:name=".view.KeyTest" />
         <activity
             android:name=".view.SingleTouchTest"
             android:configChanges="keyboard|orientation|keyboardHidden"
