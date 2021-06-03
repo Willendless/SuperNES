@@ -1,3 +1,5 @@
 <resources>
-    <string name="app_name">NES</string>
+    <string name="app_name">SuperNES</string>
+    <string name="boot_exit"><u>离开</u></string>
+    <string name="boot_start"><u>开始</u></string>
 </resources>
