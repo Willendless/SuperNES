@@ -20,7 +20,7 @@ class BootActivity : AppCompatActivity(), View.OnClickListener {
     override fun onClick(v: View?) {
         if (v != null) {
             when (v) {
-                bootStart -> HomeActivity.actionStart(this)
+                bootStart -> HomeActivity2.actionStart(this)
                 bootExit -> finish()
             }
         }

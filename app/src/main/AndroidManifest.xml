@@ -25,10 +25,14 @@
         android:roundIcon="@mipmap/ic_launcher_round"
         android:supportsRtl="true"
         android:theme="@style/Theme.NES">
+        <activity android:name=".view.GameIntroActivity">
+        </activity>
+        <activity
+            android:name=".view.HomeActivity2"
+            android:label="" />
         <activity android:name=".view.BootActivity">
             <intent-filter>
                 <action android:name="android.intent.action.MAIN" />
-
                 <category android:name="android.intent.category.LAUNCHER" />
             </intent-filter>
         </activity>
@@ -49,8 +53,7 @@
         <activity
             android:name=".view.HomeActivity"
             android:configChanges="keyboard|orientation|keyboardHidden"
-            android:screenOrientation="portrait">
-        </activity>
+            android:screenOrientation="portrait" />
         <activity
             android:name=".view.LifeCycleTest"
             android:label="Life Cycle Test" />
