@@ -63,7 +63,7 @@ class HomeActivity2 : AppCompatActivity(), SearchView.OnQueryTextListener {
     override fun onOptionsItemSelected(item: MenuItem): Boolean {
         when (item.itemId) {
             android.R.id.home -> drawer_layout.openDrawer(GravityCompat.START)
-            R.id.version -> Toast.makeText(this, "SuperNES v0.1 -- by JR",
+            R.id.version -> Toast.makeText(this, "SuperNES v0.1 -- by JR & QY",
                 Toast.LENGTH_SHORT).show()
         }
         return true
