@@ -5,6 +5,7 @@ import android.content.Intent
 import androidx.appcompat.app.AppCompatActivity
 import android.os.Bundle
 import android.view.MenuItem
+import androidx.recyclerview.widget.LinearLayoutManager
 import com.willendless.nes.R
 import kotlinx.android.synthetic.main.activity_game_collection.*
 
@@ -17,6 +18,11 @@ class GameCollectionActivity : AppCompatActivity() {
         }
     }
 
+    private val gameCollectionList = mutableListOf(
+        TextImageItem("super mario", R.drawable.super_mario),
+        TextImageItem("super mario", R.drawable.super_mario),
+        TextImageItem("super mario", R.drawable.super_mario)
+    )
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
@@ -29,8 +35,10 @@ class GameCollectionActivity : AppCompatActivity() {
         }
 
         // search for collection list
-
-
+        game_collection_recycle_view.let {
+            it.layoutManager = LinearLayoutManager(this)
+            it.adapter = GameCollectionItemAdapter(this, gameCollectionList)
+        }
     }
 
     override fun onOptionsItemSelected(item: MenuItem): Boolean {

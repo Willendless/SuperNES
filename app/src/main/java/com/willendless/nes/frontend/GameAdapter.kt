@@ -10,7 +10,9 @@ import androidx.recyclerview.widget.RecyclerView
 import com.bumptech.glide.Glide
 import com.willendless.nes.R
 
-class GameAdapter(val context: Context, private val gameList: List<Game>): RecyclerView.Adapter<GameAdapter.GameViewHolder>() {
+class GameAdapter(val context: Context, private val gameList: List<TextImageItem>):
+    RecyclerView.Adapter<GameAdapter.GameViewHolder>() {
+
     inner class GameViewHolder(view: View): RecyclerView.ViewHolder(view) {
         val gameImage: ImageView = view.findViewById(R.id.game_image)
         val gameName: TextView = view.findViewById(R.id.game_name)
@@ -24,14 +26,14 @@ class GameAdapter(val context: Context, private val gameList: List<Game>): Recyc
         view.setOnClickListener {
             val position = holder.adapterPosition
             val game = gameList[position]
-            GameIntroActivity.actionStart(context, game.name, game.imageId)
+            GameIntroActivity.actionStart(context, game.text, game.imageId)
         }
         return holder
     }
 
     override fun onBindViewHolder(holder: GameViewHolder, position: Int) {
         val game = gameList[position]
-        holder.gameName.text = game.name
+        holder.gameName.text = game.text
         Glide.with(context).load(game.imageId).into(holder.gameImage)
     }
 

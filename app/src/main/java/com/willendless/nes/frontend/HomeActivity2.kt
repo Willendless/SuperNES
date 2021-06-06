@@ -22,12 +22,12 @@ class HomeActivity2 : AppCompatActivity(), SearchView.OnQueryTextListener {
         }
     }
 
-    private val gameList = arrayListOf(Game("super mario", R.drawable.super_mario),
-        Game("super mario", R.drawable.super_mario),
-        Game("super mario", R.drawable.super_mario),
-        Game("super mario", R.drawable.super_mario),
-        Game("super mario", R.drawable.super_mario),
-        Game("super mario", R.drawable.super_mario))
+    private val gameList = arrayListOf(TextImageItem("super mario", R.drawable.super_mario),
+        TextImageItem("super mario", R.drawable.super_mario),
+        TextImageItem("super mario", R.drawable.super_mario),
+        TextImageItem("super mario", R.drawable.super_mario),
+        TextImageItem("super mario", R.drawable.super_mario),
+        TextImageItem("super mario", R.drawable.super_mario))
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)

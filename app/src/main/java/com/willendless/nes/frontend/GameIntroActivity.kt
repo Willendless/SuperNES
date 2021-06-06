@@ -24,8 +24,8 @@ class GameIntroActivity : AppCompatActivity() {
     }
 
     private val gameInfoItemList = mutableListOf(
-        GameInfoItem("", R.drawable.game),
-        GameInfoItem("", R.drawable.calendar)
+        TextImageItem("", R.drawable.game),
+        TextImageItem("", R.drawable.calendar)
     )
 
     override fun onCreate(savedInstanceState: Bundle?) {

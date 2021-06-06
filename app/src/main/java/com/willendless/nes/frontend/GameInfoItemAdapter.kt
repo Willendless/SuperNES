@@ -10,7 +10,7 @@ import androidx.recyclerview.widget.RecyclerView
 import com.bumptech.glide.Glide
 import com.willendless.nes.R
 
-class GameInfoItemAdapter(private val context: Context, private val gameInfoList: List<GameInfoItem>):
+class GameInfoItemAdapter(private val context: Context, private val gameInfoList: List<TextImageItem>):
     RecyclerView.Adapter<GameInfoItemAdapter.GameInfoItemViewHolder>() {
 
     inner class GameInfoItemViewHolder(view: View): RecyclerView.ViewHolder(view) {

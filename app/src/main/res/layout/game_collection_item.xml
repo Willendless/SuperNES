@@ -4,25 +4,40 @@
     xmlns:android="http://schemas.android.com/apk/res/android"
     android:orientation="horizontal"
     android:gravity="center_vertical"
-    android:layout_margin="10dp"
+    android:layout_margin="5dp"
     android:layout_width="match_parent"
-    android:layout_height="wrap_content">
+    android:layout_height="wrap_content"
+    android:background="@drawable/item_background"
+    >
 
     <ImageView
-        android:id="@+id/game_info_item_image"
-        android:layout_width="25dp"
-        android:layout_height="25dp"
-        android:layout_marginRight="10dp"/>
+        android:id="@+id/game_collection_item_image"
+        android:layout_width="40dp"
+        android:layout_height="70dp"
+        android:layout_marginLeft="20dp"
+        android:layout_marginRight="40dp"/>
 
     <TextView
         android:id="@+id/game_collection_item_text"
+        android:textSize="20sp"
+        android:gravity="center"
         android:layout_width="wrap_content"
         android:layout_height="wrap_content"/>
 
-    <ImageView
+    <ImageButton
+        android:id="@+id/game_collection_item_start"
         android:src="@drawable/play"
-        android:layout_width="25dp"
-        android:layout_height="25dp"
-        android:gravity="right"/>
+        android:layout_width="35dp"
+        android:layout_height="35dp"
+        android:layout_marginLeft="100dp"
+        android:background="@color/white"/>
+    
+    <ImageButton
+        android:id="@+id/game_collection_item_delete"
+        android:src="@drawable/delete"
+        android:layout_width="35dp"
+        android:layout_height="35dp"
+        android:layout_marginLeft="10dp"
+        android:background="@color/white"/>
 
 </LinearLayout>
