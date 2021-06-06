@@ -25,14 +25,15 @@
         android:roundIcon="@mipmap/ic_launcher_round"
         android:supportsRtl="true"
         android:theme="@style/Theme.NES">
-        <activity android:name=".view.GameIntroActivity">
-        </activity>
+        <activity android:name=".frontend.GameCollectionActivity"></activity>
+        <activity android:name=".frontend.GameIntroActivity"></activity>
         <activity
-            android:name=".view.HomeActivity2"
+            android:name=".frontend.HomeActivity2"
             android:label="" />
         <activity android:name=".view.BootActivity">
             <intent-filter>
                 <action android:name="android.intent.action.MAIN" />
+
                 <category android:name="android.intent.category.LAUNCHER" />
             </intent-filter>
         </activity>

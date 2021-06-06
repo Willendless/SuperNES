@@ -1,4 +1,4 @@
-package com.willendless.nes.view
+package com.willendless.nes.frontend
 
 import android.content.Context
 import android.view.LayoutInflater

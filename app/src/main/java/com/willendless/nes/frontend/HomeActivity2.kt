@@ -1,4 +1,4 @@
-package com.willendless.nes.view
+package com.willendless.nes.frontend
 
 import android.content.Context
 import android.content.Intent
@@ -12,7 +12,6 @@ import androidx.core.view.GravityCompat
 import androidx.recyclerview.widget.GridLayoutManager
 import com.willendless.nes.R
 import kotlinx.android.synthetic.main.activity_home2.*
-import kotlinx.android.synthetic.main.activity_main.*
 
 class HomeActivity2 : AppCompatActivity(), SearchView.OnQueryTextListener {
 
@@ -38,8 +37,13 @@ class HomeActivity2 : AppCompatActivity(), SearchView.OnQueryTextListener {
             it.setDisplayHomeAsUpEnabled(true)
             it.setHomeAsUpIndicator(R.drawable.menu)
         }
-        game_recycle_view.layoutManager = GridLayoutManager(this, 2)
-        game_recycle_view.adapter = GameAdapter(this, gameList)
+        game_recycle_view.let {
+            it.layoutManager = GridLayoutManager(this, 2)
+            it.adapter = GameAdapter(this, gameList)
+        }
+        favorite_button.setOnClickListener {
+            GameCollectionActivity.actionStart(this)
+        }
     }
 
     override fun onCreateOptionsMenu(menu: Menu?): Boolean {

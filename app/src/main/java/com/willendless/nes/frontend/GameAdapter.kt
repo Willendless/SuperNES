@@ -1,4 +1,4 @@
-package com.willendless.nes.view
+package com.willendless.nes.frontend
 
 import android.content.Context
 import android.view.LayoutInflater
@@ -24,7 +24,7 @@ class GameAdapter(val context: Context, private val gameList: List<Game>): Recyc
         view.setOnClickListener {
             val position = holder.adapterPosition
             val game = gameList[position]
-            GameIntroActivity.actionStart(context,game.name, game.imageId)
+            GameIntroActivity.actionStart(context, game.name, game.imageId)
         }
         return holder
     }

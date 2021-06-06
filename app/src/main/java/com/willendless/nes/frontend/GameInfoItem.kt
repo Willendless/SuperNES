@@ -1,4 +1,4 @@
-package com.willendless.nes.view
+package com.willendless.nes.frontend
 
 class GameInfoItem(var text: String, val imageId: Int) {
 }
