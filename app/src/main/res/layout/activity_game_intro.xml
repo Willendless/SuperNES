@@ -14,7 +14,8 @@
             android:layout_width="match_parent"
             android:layout_height="?actionBarSize"
             android:background="@color/gray"
-            android:theme="@style/Theme.NES">
+            android:theme="@style/Theme.NES"
+            app:navigationIcon="@drawable/back">
             <TextView
                 android:layout_width="wrap_content"
                 android:layout_height="wrap_content"
@@ -37,39 +38,53 @@
                 <LinearLayout
                     android:orientation="horizontal"
                     android:layout_width="match_parent"
-                    android:layout_height="200dp">
+                    android:layout_height="300dp">
 
-                    <ImageView
-                        android:layout_width="wrap_content"
-                        android:layout_height="wrap_content"/>
-
-                    <androidx.recyclerview.widget.RecyclerView
+                    <com.google.android.material.card.MaterialCardView
                         android:layout_width="0dp"
                         android:layout_weight="1"
-                        android:layout_height="match_parent"/>
+                        android:layout_height="match_parent"
+                        android:layout_margin="10dp"
+                        app:cardCornerRadius="4dp">
+                    <ImageView
+                        android:id="@+id/game_intro_image"
+                        android:layout_width="wrap_content"
+                        android:layout_height="wrap_content"
+                        android:contentDescription="游戏图片"
+                        android:scaleType="fitCenter"/>
+                    </com.google.android.material.card.MaterialCardView>
 
+                    <androidx.recyclerview.widget.RecyclerView
+                        android:id="@+id/game_info_recycle_view"
+                        android:isScrollContainer="false"
+                        android:layout_width="0dp"
+                        android:layout_weight="1"
+                        android:layout_margin="10dp"
+                        android:layout_height="match_parent"/>
                 </LinearLayout>
 
                 <TextView
                     android:text="游戏简介"
                     android:layout_width="match_parent"
                     android:layout_height="wrap_content"
-                    android:layout_marginLeft="5dp"
+                    android:layout_marginLeft="10dp"
+                    android:layout_marginTop="5dp"
+                    android:layout_marginBottom="5dp"
                     />
 
                 <ScrollView
                     android:layout_width="match_parent"
-                    android:layout_height="200dp"
+                    android:layout_height="150dp"
                     android:layout_marginTop="4dp"
                     android:layout_marginBottom="20dp"
-                    android:layout_marginLeft="5dp"
-                    android:layout_marginRight="5dp">
+                    android:layout_marginLeft="10dp"
+                    android:layout_marginRight="10dp"
+                    android:background="@color/gray">
                     <TextView
                         android:text="游戏简介来了\na\ns\nd\nf\na\ns\ndfasfdasdfasdf"
-                        android:id="@+id/game_info"
+                        android:id="@+id/game_intro"
                         android:layout_width="match_parent"
-                        android:layout_height="match_parent"
-                        android:background="@color/gray" />
+                        android:layout_height="wrap_content"/>
                 </ScrollView>
 
 
@@ -87,25 +102,28 @@
                         android:layout_weight="1"
                         android:gravity="center"
                         app:shapeAppearanceOverlay="@style/fab_square"
-                        android:layout_marginRight="25dp"
+                        android:layout_marginRight="15dp"
+                        android:layout_marginLeft="40dp"
                         android:backgroundTint="@color/gray"
                         app:cornerRadius="15dp"
                         android:textColor="@color/black"
                         android:layout_height="wrap_content"
-                        />
+                        android:drawableLeft="@drawable/play"/>
 
                     <Button
                         android:id="@+id/collect"
                         android:text="收藏"
                         android:layout_width="0dp"
                         android:layout_weight="1"
+                        android:layout_marginLeft="15dp"
+                        android:layout_marginRight="40dp"
                         android:gravity="center"
                         app:shapeAppearanceOverlay="@style/fab_square"
-                        android:layout_marginLeft="2dp"
                         android:backgroundTint="@color/gray"
                         app:cornerRadius="15dp"
                         android:textColor="@color/black"
-                        android:layout_height="wrap_content"/>
+                        android:layout_height="wrap_content"
+                        android:drawableLeft="@drawable/star"/>
 
                 </LinearLayout>
             </LinearLayout>
