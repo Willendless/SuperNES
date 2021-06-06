@@ -12,7 +12,7 @@
         android:id="@+id/game_info_item_image"
         android:layout_width="25dp"
         android:layout_height="25dp"
-        android:layout_marginRight="10dp"/>
+        android:layout_marginRight="15dp"/>
 
     <TextView
         android:id="@+id/game_info_Item_text"

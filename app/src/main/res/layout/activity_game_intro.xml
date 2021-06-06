@@ -59,8 +59,10 @@
                         android:isScrollContainer="false"
                         android:layout_width="0dp"
                         android:layout_weight="1"
-                        android:layout_margin="10dp"
+                        android:layout_margin="15dp"
+                        android:padding="10dp"
                         android:layout_height="match_parent"/>
+<!--                        android:background="@drawable/item_background"/>-->
                 </LinearLayout>
 
                 <TextView
