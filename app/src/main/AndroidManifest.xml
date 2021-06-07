@@ -30,7 +30,7 @@
         <activity
             android:name=".frontend.HomeActivity2"
             android:label="" />
-        <activity android:name=".view.BootActivity">
+        <activity android:name=".frontend.BootActivity">
             <intent-filter>
                 <action android:name="android.intent.action.MAIN" />
 

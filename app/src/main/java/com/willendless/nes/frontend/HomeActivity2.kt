@@ -11,7 +11,9 @@ import android.widget.Toast
 import androidx.core.view.GravityCompat
 import androidx.recyclerview.widget.GridLayoutManager
 import com.willendless.nes.R
+import com.willendless.nes.backend.NESDatabaseHelper
 import kotlinx.android.synthetic.main.activity_home2.*
+import org.w3c.dom.Text
 
 class HomeActivity2 : AppCompatActivity(), SearchView.OnQueryTextListener {
 
@@ -22,13 +24,6 @@ class HomeActivity2 : AppCompatActivity(), SearchView.OnQueryTextListener {
         }
     }
 
-    private val gameList = arrayListOf(TextImageItem("super mario", R.drawable.super_mario),
-        TextImageItem("super mario", R.drawable.super_mario),
-        TextImageItem("super mario", R.drawable.super_mario),
-        TextImageItem("super mario", R.drawable.super_mario),
-        TextImageItem("super mario", R.drawable.super_mario),
-        TextImageItem("super mario", R.drawable.super_mario))
-
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
         setContentView(R.layout.activity_home2)
@@ -37,13 +32,28 @@ class HomeActivity2 : AppCompatActivity(), SearchView.OnQueryTextListener {
             it.setDisplayHomeAsUpEnabled(true)
             it.setHomeAsUpIndicator(R.drawable.menu)
         }
+        favorite_button.setOnClickListener {
+            GameCollectionActivity.actionStart(this)
+        }
+
+        val dbHelper = NESDatabaseHelper(this, "supernes", 1)
+            .readableDatabase
+        val cursor = dbHelper.query("game", arrayOf("name", "img_name"),
+            null, null, null, null, "id")
+        val gameList = mutableListOf<TextImageItem>()
+        if (cursor.moveToFirst()) {
+            do {
+                val name = cursor.getString(cursor.getColumnIndex("name"))
+                val imgName = cursor.getString(cursor.getColumnIndex("img_name"))
+                gameList.add(TextImageItem(name, this.resources.
+                    getIdentifier(imgName, "drawable", this.packageName)))
+            } while (cursor.moveToNext());
+        }
         game_recycle_view.let {
             it.layoutManager = GridLayoutManager(this, 2)
             it.adapter = GameAdapter(this, gameList)
         }
-        favorite_button.setOnClickListener {
-            GameCollectionActivity.actionStart(this)
-        }
+        cursor.close()
     }
 
     override fun onCreateOptionsMenu(menu: Menu?): Boolean {

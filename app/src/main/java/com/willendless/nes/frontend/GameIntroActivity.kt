@@ -8,6 +8,7 @@ import android.view.MenuItem
 import androidx.recyclerview.widget.LinearLayoutManager
 import com.bumptech.glide.Glide
 import com.willendless.nes.R
+import com.willendless.nes.backend.NESDatabaseHelper
 import kotlinx.android.synthetic.main.activity_game_intro.*
 
 class GameIntroActivity : AppCompatActivity() {
@@ -25,7 +26,8 @@ class GameIntroActivity : AppCompatActivity() {
 
     private val gameInfoItemList = mutableListOf(
         TextImageItem("", R.drawable.game),
-        TextImageItem("", R.drawable.calendar)
+        TextImageItem("", R.drawable.calendar),
+        TextImageItem("", R.drawable.type)
     )
 
     override fun onCreate(savedInstanceState: Bundle?) {
@@ -45,8 +47,23 @@ class GameIntroActivity : AppCompatActivity() {
             Glide.with(this).load(gameImageId).into(game_intro_image)
         }
 
+        val dbHelper = NESDatabaseHelper(this, "supernes", 1)
+            .readableDatabase
+
+        val cursor = dbHelper.query("game", arrayOf("type", "year", "info"),
+            "name=?", arrayOf(gameName!!), null, null, null)
+
         gameInfoItemList[0].text = gameName!!
-        gameInfoItemList[1].text = "1990"
+        if (cursor.moveToFirst()) {
+            gameInfoItemList[1].text = cursor.getString(cursor.getColumnIndex("year"))
+            gameInfoItemList[2].text = cursor.getString(cursor.getColumnIndex("type"))
+            game_intro.text = cursor.getString(cursor.getColumnIndex("info"))
+        } else {
+            gameInfoItemList[1].text = "未知"
+            gameInfoItemList[2].text = "未知"
+            game_intro.text = "这个游戏看来需要你自己去探索"
+        }
+        cursor.close()
 
         game_info_recycle_view.setHasFixedSize(true)
         game_info_recycle_view.layoutManager = LinearLayoutManager(this)

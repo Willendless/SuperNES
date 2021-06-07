@@ -51,7 +51,7 @@
                         android:layout_width="wrap_content"
                         android:layout_height="wrap_content"
                         android:contentDescription="游戏图片"
-                        android:scaleType="fitCenter"/>
+                        android:scaleType="centerCrop"/>
                     </com.google.android.material.card.MaterialCardView>
 
                     <androidx.recyclerview.widget.RecyclerView
@@ -65,14 +65,20 @@
 <!--                        android:background="@drawable/item_background"/>-->
                 </LinearLayout>
 
-                <TextView
-                    android:text="游戏简介"
+                <ScrollView
                     android:layout_width="match_parent"
-                    android:layout_height="wrap_content"
-                    android:layout_marginLeft="10dp"
-                    android:layout_marginTop="5dp"
-                    android:layout_marginBottom="5dp"
-                    />
+                    android:layout_height="wrap_content">
+                    <TextView
+                        android:text="游戏简介"
+                        android:layout_width="match_parent"
+                        android:layout_height="wrap_content"
+                        android:padding="5dp"
+                        android:textSize="17sp"
+                        android:layout_marginLeft="10dp"
+                        android:layout_marginTop="5dp"
+                        android:layout_marginBottom="5dp"
+                        />
+                </ScrollView>
 
                 <ScrollView
                     android:layout_width="match_parent"
