@@ -14,14 +14,17 @@
         android:id="@+id/game_collection_item_image"
         android:layout_width="40dp"
         android:layout_height="70dp"
+        android:layout_marginTop="5dp"
+        android:layout_marginBottom="5dp"
         android:layout_marginLeft="20dp"
-        android:layout_marginRight="40dp"/>
+        android:layout_marginRight="40dp"
+        android:scaleType="centerCrop"/>
 
     <TextView
         android:id="@+id/game_collection_item_text"
         android:textSize="20sp"
-        android:gravity="center"
-        android:layout_width="wrap_content"
+        android:gravity="left"
+        android:layout_width="100dp"
         android:layout_height="wrap_content"/>
 
     <ImageButton

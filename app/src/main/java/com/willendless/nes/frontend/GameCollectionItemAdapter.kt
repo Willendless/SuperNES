@@ -10,8 +10,9 @@ import android.widget.TextView
 import androidx.recyclerview.widget.RecyclerView
 import com.bumptech.glide.Glide
 import com.willendless.nes.R
+import com.willendless.nes.backend.NESDatabaseHelper
 
-class GameCollectionItemAdapter(val context: Context, private val gameCollectionList: List<TextImageItem>):
+class GameCollectionItemAdapter(val context: Context, private val gameCollectionList: MutableList<TextImageItem>):
     RecyclerView.Adapter<GameCollectionItemAdapter.GameCollectionViewHolder>() {
 
     inner class GameCollectionViewHolder(view: View): RecyclerView.ViewHolder(view) {
@@ -29,13 +30,20 @@ class GameCollectionItemAdapter(val context: Context, private val gameCollection
 
     override fun onBindViewHolder(holder: GameCollectionViewHolder, position: Int) {
         val gameInfo = gameCollectionList[position]
-        holder.gameText.text = gameInfo.text
+        val gameName = gameInfo.text
+        holder.gameText.text = gameName
         Glide.with(context).load(gameInfo.imageId).into(holder.gameImage)
         holder.gameStart.setOnClickListener {
             // TODO: start game
         }
         holder.gameDelete.setOnClickListener {
-            // TODO: delete collection Item
+            val dbHelper = NESDatabaseHelper(context, "supernes", 1)
+                .writableDatabase
+            dbHelper.delete("collection", "game_name=?",
+                arrayOf(gameName))
+            gameCollectionList.removeAt(position)
+            notifyItemRemoved(position)
+            notifyItemRangeChanged(position, gameCollectionList.size)
         }
     }
 

@@ -130,8 +130,7 @@
                         android:backgroundTint="@color/gray"
                         app:cornerRadius="15dp"
                         android:textColor="@color/black"
-                        android:layout_height="wrap_content"
-                        android:drawableLeft="@drawable/star"/>
+                        android:layout_height="wrap_content"/>
 
                 </LinearLayout>
             </LinearLayout>
