@@ -162,15 +162,15 @@ object PPU {
             mirroring,
             controllerReg.getNameTableBase()
         )) {
-            Pair(Rom.Mirroring.VERTICAL, 0x2000),
-            Pair(Rom.Mirroring.VERTICAL, 0x2800),
-            Pair(Rom.Mirroring.HORIZONTAL, 0x2000),
-            Pair(Rom.Mirroring.HORIZONTAL, 0x2400)
+            Pair(Rom.Mirroring.VERTICAL, 0x2000.toUShort()),
+            Pair(Rom.Mirroring.VERTICAL, 0x2800.toUShort()),
+            Pair(Rom.Mirroring.HORIZONTAL, 0x2000.toUShort()),
+            Pair(Rom.Mirroring.HORIZONTAL, 0x2400.toUShort())
             -> Pair(ram.asList().subList(0, 0x400), ram.asList().subList(0x400, 0x800))
-            Pair(Rom.Mirroring.VERTICAL, 0x2400),
-            Pair(Rom.Mirroring.VERTICAL, 0x2C00),
-            Pair(Rom.Mirroring.HORIZONTAL, 0x2800),
-            Pair(Rom.Mirroring.HORIZONTAL, 0x2C00)
+            Pair(Rom.Mirroring.VERTICAL, 0x2400.toUShort()),
+            Pair(Rom.Mirroring.VERTICAL, 0x2C00.toUShort()),
+            Pair(Rom.Mirroring.HORIZONTAL, 0x2800.toUShort()),
+            Pair(Rom.Mirroring.HORIZONTAL, 0x2C00.toUShort())
             -> Pair(ram.asList().subList(0, 0x400), ram.asList().subList(0x400, 0x800))
             else -> unreachable("Not supported mirroring type $mirroring")
         }

@@ -83,6 +83,16 @@ class NESDatabaseHelper(context: Context, name: String, version: Int) :
             put("img_name", "virus")
         }
         db?.insert("game", null, virus)
+
+        val mario = ContentValues().apply {
+            put("name", "超级马里奥")
+            put("info", "记得改封面图片！")
+            put("year", 1985)
+            put("type", "Arcade")
+            put("file_path", "testGames/Super_mario_brothers.nes")
+            put("img_name", "virus")
+        }
+        db?.insert("game", null, mario)
     }
 
     override fun onUpgrade(db: SQLiteDatabase?, oldVersion: Int, newVersion: Int) {
