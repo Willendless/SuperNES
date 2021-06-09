@@ -15,12 +15,14 @@ package com.willendless.nes.emulator.ppu
 
 @kotlin.ExperimentalUnsignedTypes
 enum class MaskRegFlag(val mask: UByte) {
-    MONOCHROME_MODE(0b0000_0000u),
-    CLIP_BACKGROUND(0b0000_0001u),
-    SPRITES(0b0000_0010u),
-    DISPLAY_BACKGROUND(0b0000_1000u),
-    DISPLAY_SPRITES(0b0001_0000u),
-    BACKGROUND_COLOR_INTENSITY(0b1110_0000u)
+    GREYSCALE(0b0000_0001u),
+    LEFTMOST_8PXL_BACKGROUND(0b0000_0010u),
+    LEFTMOST_8PXL_SPRITE(0b0000_0100u),
+    SHOW_BACKGROUND(0b0000_1000u),
+    SHOW_SPRITES(0b0001_0000u),
+    EMPHASISE_RED(0b0010_0000u),
+    EMPHASISE_GREEN(0b0100_0000u),
+    EMPHASISE_BLUE(0b1000_0000u),
 }
 
 @kotlin.ExperimentalUnsignedTypes
@@ -28,5 +30,25 @@ object MaskReg {
     var reg: UByte = 0u.toUByte()
     fun set(i: UByte) {
         reg = i
+    }
+
+    fun is_grayscale(): Boolean {
+        return reg.and(MaskRegFlag.GREYSCALE.mask) != 0.toUByte()
+    }
+
+    fun leftmost_8pxl_background(): Boolean {
+        return reg.and(MaskRegFlag.LEFTMOST_8PXL_BACKGROUND.mask) != 0.toUByte()
+    }
+
+    fun leftmost_8pxl_sprite(): Boolean {
+        return reg.and(MaskRegFlag.LEFTMOST_8PXL_SPRITE.mask) != 0.toUByte()
+    }
+
+    fun show_background(): Boolean {
+        return reg.and(MaskRegFlag.SHOW_BACKGROUND.mask) != 0.toUByte()
+    }
+
+    fun show_sprites(): Boolean {
+        return reg.and(MaskRegFlag.SHOW_SPRITES.mask) != 0.toUByte()
     }
 }

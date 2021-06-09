@@ -1,7 +1,6 @@
 package com.willendless.nes.emulator.ppu
 
 import android.os.Build
-import android.util.Log
 import androidx.annotation.RequiresApi
 import com.willendless.nes.emulator.Rom
 import com.willendless.nes.emulator.util.nesAssert
@@ -13,28 +12,35 @@ object PPU {
     // memory address space
     // chrRom: 0x0..0x2000
     lateinit var chrRom: List<UByte>
+
     // ram: 0x2000..0x2800..mirror to..0x3F00
     private val ram: UByteArray = UByteArray(0x800)
+
     // palettes: 0x3F00..0x3F20..mirror to..0x4000
     private val palettesTable: UByteArray = UByteArray(32)
+
     // oam: ppu internal memory
     private val oam: UByteArray = UByteArray(256)
     private var mirroring: Rom.Mirroring = Rom.Mirroring.HORIZONTAL
+
     // registers
     private var addrReg = AddressReg
-    private val controlReg1 = ControllerReg
-    private val controlReg2 = MaskReg
+    private val controllerReg = ControllerReg
+    private val maskReg = MaskReg
     private val statusReg = StatusReg
     private var oamAddrReg: UByte = 0u.toUByte()
-    private var scrollReg: UByte = 0u.toUByte()
+    private var scrollReg = ScrollReg
+
     // latch
     private var dataBuffer: UByte = 0u.toUByte()
+
     // scan line bookkeeping
-    private var cycles = 0;
+    private var cycles = 0
     private var scanLine = 0
     private const val SCAN_LINE_CYCLES_CNT = 341
     private const val SCAN_LINE_END = 262
     private const val SCAN_LINE_VBLANK_BASE = 241
+
     // interrupt
     private var isNMITriggered = false
 
@@ -47,11 +53,11 @@ object PPU {
         ram.fill(0u)
         palettesTable.fill(0u)
         addrReg.clear()
-        controlReg1.set(0u)
-        controlReg2.set(0u)
+        controllerReg.set(0u)
+        maskReg.set(0u)
         statusReg.clear()
         oamAddrReg = 0u
-        scrollReg = 0u
+        scrollReg.clear()
         dataBuffer = 0u
         cycles = 0
         scanLine = 0
@@ -60,22 +66,34 @@ object PPU {
     fun tick(deltaCycles: Int) {
         cycles += deltaCycles
         if (cycles >= SCAN_LINE_CYCLES_CNT) {
+            if (is_sprite_0_hit(cycles)) {
+                statusReg.setStatus(Flag.SPRITE_0_HIT, true)
+            }
+
             cycles -= SCAN_LINE_CYCLES_CNT
             scanLine += 1
 
             if (scanLine == SCAN_LINE_VBLANK_BASE) {
                 statusReg.setStatus(Flag.VBLANK_STATE, true)
+                statusReg.setStatus(Flag.SPRITE_0_HIT, false)
                 statusReg.setStatus(Flag.IGNORE_RAM_WRITE, false)
-                if (controlReg1.getFlag(ControllerRegFlag.NMI_ENABLE))
+                if (controllerReg.getFlag(ControllerRegFlag.NMI_ENABLE))
                     isNMITriggered = true
             }
 
             if (scanLine >= SCAN_LINE_END) {
                 scanLine = 0
                 isNMITriggered = false
+                statusReg.setStatus(Flag.SPRITE_0_HIT, false)
                 statusReg.setStatus(Flag.VBLANK_STATE, false)
             }
         }
+    }
+
+    private fun is_sprite_0_hit(cycle: Int): Boolean {
+        val sprite_0_y = oam[0].toInt()
+        val sprite_0_x = oam[3].toInt()
+        return sprite_0_y == scanLine && sprite_0_x <= cycle && maskReg.show_sprites()
     }
 
     // ENSURES: return true if there is a NMI waiting to be handled, clear it before return
@@ -95,17 +113,17 @@ object PPU {
 
     private fun isInVblank() = scanLine >= SCAN_LINE_VBLANK_BASE
 
-    fun writeControlReg1(value: UByte) {
-        val prevNMIEn = controlReg1.getFlag(ControllerRegFlag.NMI_ENABLE)
-        controlReg1.set(value)
-        val curNMIEn = controlReg1.getFlag(ControllerRegFlag.NMI_ENABLE)
+    fun writeControllerReg(value: UByte) {
+        val prevNMIEn = controllerReg.getFlag(ControllerRegFlag.NMI_ENABLE)
+        controllerReg.set(value)
+        val curNMIEn = controllerReg.getFlag(ControllerRegFlag.NMI_ENABLE)
         if (!prevNMIEn && curNMIEn && isInVblank()) {
             isNMITriggered = true
         }
     }
 
-    fun writeControlReg2(value: UByte) {
-        controlReg2.set(value)
+    fun writeMaskReg(value: UByte) {
+        maskReg.set(value)
     }
 
     fun readStatusReg() = statusReg.get()
@@ -123,42 +141,64 @@ object PPU {
     }
 
     fun writeScrollReg(value: UByte) {
-        scrollReg = value
+        scrollReg.write(value)
     }
 
     fun incAddrReg() {
-        if (controlReg1.getFlag(ControllerRegFlag.VRAM_ADD_AUTOINCREMENT)) {
+        if (controllerReg.getFlag(ControllerRegFlag.VRAM_ADD_AUTOINCREMENT)) {
             addrReg.inc(32u)
         } else {
             addrReg.inc(1u)
         }
     }
 
-    enum class RenderKind {
-        BACK_GROUND,
-        SPRITE
-    }
-
     // Render screen according to ppu vram.
     @RequiresApi(Build.VERSION_CODES.O)
     fun render(graphics: Graphics) {
-        val nameTableBase = vaddrToPaddr(controlReg1.getNameTableBase()).toInt() - 0x2000
-//        Log.d("render", "name table base ${Integer.toHexString(nameTableBase.toInt())}")
-//        Log.d("render", "tick")
-        val backgroundBank = controlReg1.
-            getPatternTableBase(ControllerReg.PatternTableKind.BACKGROUND)
-        val spriteBank = controlReg1.
-            getPatternTableBase(ControllerReg.PatternTableKind.SPRITE)
+        val scrollX = scrollReg.scroll_x.toInt()
+        val scrollY = scrollReg.scroll_y.toInt()
 
-//        Log.d("sprite table base", "${Integer.toHexString(spriteBank.toInt())}")
-
-        // render background
-        for (i in 0 until 0x3C0) {
-            val tileIndex = ram[i].toInt()
-            val tileY = i / 32
-            val tileX = i % 32
-            renderBackgroundTile(tileX, tileY, backgroundBank.toInt(), tileIndex, graphics)
+        val (main_nametable, second_nametable) = when (Pair(
+            mirroring,
+            controllerReg.getNameTableBase()
+        )) {
+            Pair(Rom.Mirroring.VERTICAL, 0x2000),
+            Pair(Rom.Mirroring.VERTICAL, 0x2800),
+            Pair(Rom.Mirroring.HORIZONTAL, 0x2000),
+            Pair(Rom.Mirroring.HORIZONTAL, 0x2400)
+            -> Pair(ram.asList().subList(0, 0x400), ram.asList().subList(0x400, 0x800))
+            Pair(Rom.Mirroring.VERTICAL, 0x2400),
+            Pair(Rom.Mirroring.VERTICAL, 0x2C00),
+            Pair(Rom.Mirroring.HORIZONTAL, 0x2800),
+            Pair(Rom.Mirroring.HORIZONTAL, 0x2C00)
+            -> Pair(ram.asList().subList(0, 0x400), ram.asList().subList(0x400, 0x800))
+            else -> unreachable("Not supported mirroring type $mirroring")
         }
+
+        renderNameTable(
+            main_nametable,
+            Rect(scrollX, scrollY, 256, 240),
+            -scrollX, -scrollY,
+            graphics
+        )
+        if (scrollX > 0) {
+            renderNameTable(
+                second_nametable,
+                Rect(0, 0, scrollX, 240),
+                256 - scrollX, 0,
+                graphics
+            )
+        } else if (scrollY > 0) {
+            renderNameTable(
+                second_nametable,
+                Rect(0, 0, 256, scrollY),
+                0, 240 - scrollY,
+                graphics
+            )
+        }
+
+        val spriteBank = controllerReg.getPatternTableBase(ControllerReg.PatternTableKind.SPRITE)
+//        Log.d("sprite table base", "${Integer.toHexString(spriteBank.toInt())}")
         // render sprite
         for (i in oam.indices step 4) {
             val tileX = oam[i + 3].toInt()
@@ -168,9 +208,85 @@ object PPU {
             val flipHorizontal = (attr shr 6 and 1) != 0
             val flipVertical = (attr shr 7 and 1) != 0
             val platteIndex = attr and 0b11
-            renderSpriteTile(tileX, tileY, spriteBank.toInt(), tileIndex, platteIndex,
-                flipHorizontal, flipVertical, graphics)
+            renderSpriteTile(
+                tileX, tileY, spriteBank.toInt(), tileIndex, platteIndex,
+                flipHorizontal, flipVertical, graphics
+            )
         }
+    }
+
+    @RequiresApi(Build.VERSION_CODES.O)
+    private fun renderNameTable(
+        name_table: List<UByte>,
+        view_port: Rect,
+        shiftX: Int,
+        shiftY: Int,
+        graphics: Graphics
+    ) {
+        val backgroundBank =
+            controllerReg.getPatternTableBase(ControllerReg.PatternTableKind.BACKGROUND)
+
+        val attributeTable = name_table.subList(0x3C0, 0x400)
+
+        // render background
+        for (i in 0 until 0x3C0) {
+            val tileX = i % 32
+            val tileY = i / 32
+            val tileIndex = ram[i].toInt()
+            // REQUIRES: bank ==
+            val base = (backgroundBank.toInt() + tileIndex * 16) % chrRom.size
+            val tile = chrRom.subList(base, base + 16)
+            val paletteTable = getBackgroundPaletteTable(attributeTable, tileX, tileY)
+
+            for (r in 0 until 8) {
+                var lower = tile[r].toInt()
+                var upper = tile[r + 8].toInt()
+                for (p in (0 until 8).reversed()) {
+                    val index = ((1 and upper) shl 1) or (1 and lower)
+                    lower = lower shr 1
+                    upper = upper shr 1
+                    val color = PaletteMap.getColor(paletteTable[index].toInt())
+
+                    val pixelX = tileX * 8 + p
+                    val pixelY = tileY * 8 + r
+
+                    if (pixelX >= view_port.x1 && pixelX < view_port.x2 && pixelY >= view_port.y1 && pixelY < view_port.y2) {
+                        graphics.drawPixel(shiftX + pixelX, shiftY + pixelY, color.toArgb())
+                    }
+                }
+            }
+        }
+    }
+
+    // Get palette from palette table using 4x4 tile coordinates and 64B table following name table
+    private fun getBackgroundPaletteTable(
+        attributeTable: List<UByte>,
+        tileX: Int,
+        tileY: Int
+    ): UByteArray {
+        val attributeTableIndex = tileY / 4 * 8 + tileX / 4
+        nesAssert(
+            attributeTableIndex < 64,
+            "invalid index $attributeTableIndex palette name table is only 64B"
+        )
+        val attributeByte = attributeTable[attributeTableIndex]
+
+        // find attribute table index
+        val x = tileX % 4 / 2
+        val y = tileY % 4 / 2
+        val palletIndex = when {
+            x == 0 && y == 0 -> attributeByte.toInt() and 0b11
+            x == 1 && y == 0 -> attributeByte.toInt() shr 2 and 0b11
+            x == 0 && y == 1 -> attributeByte.toInt() shr 4 and 0b11
+            x == 1 && y == 1 -> attributeByte.toInt() shr 6 and 0b11
+            else -> unreachable("")
+        }
+
+        val base = 1 + palletIndex * 4
+        return ubyteArrayOf(
+            palettesTable[0], palettesTable[base],
+            palettesTable[base + 1], palettesTable[base + 2]
+        )
     }
 
     // Byte 0: Y position of top of sprite
@@ -185,10 +301,12 @@ object PPU {
     //    +-------- Flip sprite vertically
     // Byte 3: X position of top of sprite
     @RequiresApi(Build.VERSION_CODES.O)
-    private fun renderSpriteTile(tileX: Int, tileY: Int, bank: Int,
-                                 tileIndex: Int, platteIndex: Int,
-                                 isFlipHorizontal: Boolean,
-                                 isFlipVertical: Boolean, graphics: Graphics) {
+    private fun renderSpriteTile(
+        tileX: Int, tileY: Int, bank: Int,
+        tileIndex: Int, platteIndex: Int,
+        isFlipHorizontal: Boolean,
+        isFlipVertical: Boolean, graphics: Graphics
+    ) {
         val tileBase = (bank + tileIndex * 16) % chrRom.size
         val tile = chrRom.slice(tileBase until tileBase + 16)
         val platteTable = getSpritePaletteTable(platteIndex)
@@ -217,50 +335,10 @@ object PPU {
 
     private fun getSpritePaletteTable(platteIndex: Int): UByteArray {
         val base = 0x11 + 4 * platteIndex
-        return ubyteArrayOf(palettesTable[0], palettesTable[base],
-                palettesTable[base + 1], palettesTable[base + 2])
-    }
-
-    // REQUIRES: bank ==
-    @RequiresApi(Build.VERSION_CODES.O)
-    private fun renderBackgroundTile(tileX: Int, tileY: Int, bank: Int, tileIndex: Int, graphics: Graphics) {
-        val base = (bank + tileIndex * 16) % chrRom.size
-        val tile = chrRom.slice(base until base + 16)
-        val paletteTable = getBackgroundPaletteTable(tileX, tileY)
-        for (r in 0 until 8) {
-            var lower = tile[r].toInt()
-            var upper = tile[r + 8].toInt()
-            for (p in (0 until 8).reversed()) {
-                val index = ((1 and upper) shl 1) or (1 and lower)
-                lower = lower shr 1
-                upper = upper shr 1
-                val color = PaletteMap.getColor(paletteTable[index].toInt())
-                graphics.drawPixel(tileX * 8 + p, tileY * 8 + r, color.toArgb())
-            }
-        }
-    }
-
-    // Get palette from palette table using 4x4 tile coordinates and 64B table following name table
-    private fun getBackgroundPaletteTable(tileX: Int , tileY: Int): UByteArray {
-        val attributeTableIndex = tileX / 4 + tileY / 4 * 8
-        nesAssert(attributeTableIndex < 64,
-            "invalid index $attributeTableIndex palette name table is only 64B")
-
-        val attributeByte = ram[0x3C0 + attributeTableIndex]
-        // find attribute table index
-        val x = tileX % 4 / 2
-        val y = tileY % 4 / 2
-        val palletIndex = when {
-            x == 0 && y == 0 -> attributeByte.toInt() and 0b11
-            x == 1 && y == 0 -> attributeByte.toInt() shr 2 and 0b11
-            x == 0 && y == 1 -> attributeByte.toInt() shr 4 and 0b11
-            x == 1 && y == 1 -> attributeByte.toInt() shr 6 and 0b11
-            else -> unreachable("")
-        }
-
-        val base = palletIndex * 4 + 1
-        return ubyteArrayOf(palettesTable[0], palettesTable[base],
-            palettesTable[base + 1], palettesTable[base + 2])
+        return ubyteArrayOf(
+            palettesTable[0], palettesTable[base],
+            palettesTable[base + 1], palettesTable[base + 2]
+        )
     }
 
     // Provided to ppu test
@@ -298,8 +376,10 @@ object PPU {
         return when (addr.toInt()) {
             // read chr rom (pattern tables)
             in 0..0x1FFF -> {
-                nesAssert(::chrRom.isInitialized,
-                    "read ppu data before chrRom initialized")
+                nesAssert(
+                    ::chrRom.isInitialized,
+                    "read ppu data before chrRom initialized"
+                )
                 val res = dataBuffer
                 dataBuffer = chrRom[addr.toInt()]
                 res
@@ -315,8 +395,10 @@ object PPU {
                 val mirroredAddr = addr and 0x3F1Fu
                 palettesTable[(mirroredAddr.toInt() - 0x3f00) and 0x1F]
             }
-            else -> unreachable("unexpected ppu memory address" +
-                    " ${Integer.toHexString(addr.toInt())}")
+            else -> unreachable(
+                "unexpected ppu memory address" +
+                        " ${Integer.toHexString(addr.toInt())}"
+            )
         }
     }
 
@@ -326,7 +408,8 @@ object PPU {
 
         when (addr.toInt()) {
             // todo: fix bug here
-            in 0..0x1FFF -> {}
+            in 0..0x1FFF -> {
+            }
 //                unreachable("chr rom addr: " +
 //                    "${Integer.toHexString(addr.toInt())} cannot be written")
             in 0x2000..0x3EFF -> {
@@ -338,8 +421,10 @@ object PPU {
                 val mirroredAddr = addr and 0x3F1Fu
                 palettesTable[(mirroredAddr.toInt() - 0x3f00) and 0x1F] = value
             }
-            else -> unreachable("unexpected ppu memory address" +
-                    " ${Integer.toHexString(addr.toInt())}")
+            else -> unreachable(
+                "unexpected ppu memory address" +
+                        " ${Integer.toHexString(addr.toInt())}"
+            )
         }
     }
 

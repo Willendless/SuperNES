@@ -22,7 +22,7 @@ class PPUTest {
 
     @Test
     fun test_ppu_ram_read() {
-        ppu.writeControlReg1(0u)
+        ppu.writeControllerReg(0u)
         ppu.writeAddrReg(0x23u)
         ppu.writeAddrReg(0x05u)
         ppu.writeUByte(0x01u)
@@ -35,7 +35,7 @@ class PPUTest {
 
     @Test
     fun test_ppu_ram_read_step_32() {
-        ppu.writeControlReg1(0b100u)
+        ppu.writeControllerReg(0b100u)
         ppu.writeAddrReg(0x21u)
         ppu.writeAddrReg(0xffu)
         ppu.writeUByte(0x77u)

@@ -2,7 +2,6 @@ package com.willendless.nes.emulator
 
 import com.willendless.nes.emulator.cpu.CPU
 import com.willendless.nes.emulator.ppu.PPU
-import com.willendless.nes.emulator.ppu.Flag
 import com.willendless.nes.emulator.util.unreachable
 
 @ExperimentalUnsignedTypes
@@ -16,12 +15,12 @@ object NESBus: Bus {
 
     private const val PPU_REGS_BASE: UShort = 0x2000u
     private const val PPU_REGS_END: UShort = 0x3FFFu
-    private const val PPU_CONTROL_REG_1: UShort = 0x0u // write only
-    private const val PPU_CONTROL_REG_2: UShort = 0x1u // write only
+    private const val PPU_CONTROLLER_REG: UShort = 0x0u // write only
+    private const val PPU_MASK_REG: UShort = 0x1u // write only
     private const val PPU_STATUS_REG: UShort = 0x2u // read only
     private const val PPU_OAM_ADDRESS_REG: UShort = 0x3u // write only
     private const val PPU_OAM_DATA_REG: UShort = 0x4u // read/write
-    private const val PPU_SCROLL: UShort = 0x5u // write only
+    private const val PPU_SCROLL_REG: UShort = 0x5u // write only
     private const val PPU_ADDRESS_REG: UShort = 0x6u // write only
     private const val PPU_DATA_REG: UShort = 0x7u // read/write
     private const val PPU_OAM_DMA: UShort = 0x4014u // write only
@@ -47,8 +46,8 @@ object NESBus: Bus {
         }
         in PPU_REGS_BASE..PPU_REGS_END -> {
             when (addr and 0b111u) {
-                PPU_CONTROL_REG_1, PPU_CONTROL_REG_2, PPU_OAM_ADDRESS_REG,
-                PPU_SCROLL, PPU_ADDRESS_REG -> unreachable("Unable to read from write only registers")
+                PPU_CONTROLLER_REG, PPU_MASK_REG, PPU_OAM_ADDRESS_REG,
+                PPU_SCROLL_REG, PPU_ADDRESS_REG -> unreachable("Unable to read from write only registers")
                 PPU_OAM_DATA_REG -> ppu.readOAMUByte()
                 PPU_STATUS_REG -> ppu.readStatusReg()
                 PPU_DATA_REG -> ppu.readUByte()
@@ -83,13 +82,13 @@ object NESBus: Bus {
             }
             in PPU_REGS_BASE..PPU_REGS_END -> {
                 when (addr and 0b111u) {
-                    PPU_CONTROL_REG_1 -> ppu.writeControlReg1(data)
-                    PPU_CONTROL_REG_2 -> ppu.writeControlReg2(data)
+                    PPU_CONTROLLER_REG -> ppu.writeControllerReg(data)
+                    PPU_MASK_REG -> ppu.writeMaskReg(data)
                     PPU_STATUS_REG -> unreachable("Unable to write to " +
                             "read only register ppu:status")
                     PPU_OAM_ADDRESS_REG -> ppu.writeOAMAddrReg(data)
                     PPU_OAM_DATA_REG -> ppu.writeOAMUByte(data)
-                    PPU_SCROLL -> ppu.writeScrollReg(data)
+                    PPU_SCROLL_REG -> ppu.writeScrollReg(data)
                     PPU_ADDRESS_REG -> ppu.writeAddrReg(data)
                     PPU_DATA_REG -> ppu.writeUByte(data)
                     PPU_OAM_DMA-> unreachable("Unable to read from write only register $addr")
