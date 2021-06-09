@@ -7,11 +7,13 @@ import androidx.appcompat.app.AppCompatActivity
 import android.os.Bundle
 import android.util.Log
 import android.view.MenuItem
+import android.widget.Toast
 import androidx.core.content.ContextCompat
 import androidx.recyclerview.widget.LinearLayoutManager
 import com.bumptech.glide.Glide
 import com.willendless.nes.R
 import com.willendless.nes.backend.NESDatabaseHelper
+import com.willendless.nes.emulator.util.unreachable
 import kotlinx.android.synthetic.main.activity_game_intro.*
 
 class GameIntroActivity : AppCompatActivity() {
@@ -55,11 +57,14 @@ class GameIntroActivity : AppCompatActivity() {
         val dbHelper = NESDatabaseHelper(this, "supernes", 1)
             .writableDatabase
 
-        val cursor = dbHelper.query("game", arrayOf("type", "year", "info"),
+        val cursor = dbHelper.query("game", arrayOf("type", "year", "info", "file_path"),
             "name=?", arrayOf(gameName), null, null, null)
+
+        var filePath = ""
 
         gameInfoItemList[0].text = gameName
         if (cursor.moveToFirst()) {
+            filePath = cursor.getString(cursor.getColumnIndex("file_path"))
             gameInfoItemList[1].text = cursor.getString(cursor.getColumnIndex("year"))
             gameInfoItemList[2].text = cursor.getString(cursor.getColumnIndex("type"))
             game_intro.text = cursor.getString(cursor.getColumnIndex("info"))
@@ -69,6 +74,15 @@ class GameIntroActivity : AppCompatActivity() {
             game_intro.text = "这个游戏看来需要你自己去探索"
         }
         cursor.close()
+
+        // play button
+        play.setOnClickListener {
+            when (filePath) {
+                "" -> Toast.makeText(this, "failed to find game rom file",
+                    Toast.LENGTH_SHORT).show()
+                else -> GameActivity.actionStart(this, filePath)
+            }
+        }
 
         // collect button
         var collected = false

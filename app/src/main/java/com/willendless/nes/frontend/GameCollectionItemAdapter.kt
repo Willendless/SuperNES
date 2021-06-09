@@ -33,9 +33,20 @@ class GameCollectionItemAdapter(val context: Context, private val gameCollection
         val gameName = gameInfo.text
         holder.gameText.text = gameName
         Glide.with(context).load(gameInfo.imageId).into(holder.gameImage)
+
         holder.gameStart.setOnClickListener {
-            // TODO: start game
+            val dbHelper = NESDatabaseHelper(context, "supernes", 1)
+                .readableDatabase
+            val cursor = dbHelper.query("game", arrayOf("file_path"),
+                "name=?", arrayOf(gameName),
+                null, null, null)
+            if (cursor.moveToFirst()) {
+                GameActivity.actionStart(context, cursor.getString(
+                    cursor.getColumnIndex("file_path")))
+            }
+            cursor.close()
         }
+
         holder.gameDelete.setOnClickListener {
             val dbHelper = NESDatabaseHelper(context, "supernes", 1)
                 .writableDatabase
