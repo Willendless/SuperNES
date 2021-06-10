@@ -11,7 +11,7 @@ class Rom(raw: UByteArray) {
                 'S'.toInt().toUByte(),
                 0x1Au).asList()
         private const val PRG_BANK_SIZE = 0x4000
-        private const val CHR_BANK_SIZE = 0x1000
+        private const val CHR_BANK_SIZE = 0x2000
     }
     enum class Mirroring {
         VERTICAL,

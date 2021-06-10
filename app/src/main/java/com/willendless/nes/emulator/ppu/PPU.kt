@@ -309,7 +309,7 @@ object PPU {
     ) {
         val tileBase = (bank + tileIndex * 16) % chrRom.size
         val tile = chrRom.slice(tileBase until tileBase + 16)
-        val platteTable = getSpritePaletteTable(platteIndex)
+        val paletteTable = getSpritePaletteTable(platteIndex)
         for (r in 0 until 8) {
             var lower = tile[r].toInt()
             var upper = tile[r + 8].toInt()
@@ -318,7 +318,7 @@ object PPU {
 //                if (index == 0) continue
                 lower = lower shr 1
                 upper = upper shr 1
-                val color = PaletteMap.getColor(platteTable[index].toInt())
+                val color = PaletteMap.getColor(paletteTable[index].toInt())
                 when {
                     !isFlipHorizontal && !isFlipVertical ->
                         graphics.drawPixel(tileX + p, tileY + r, color.toArgb())

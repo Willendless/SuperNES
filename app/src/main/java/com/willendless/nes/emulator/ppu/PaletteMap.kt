@@ -76,7 +76,7 @@ object PaletteMap {
 
    // REQUIRES: index < 64
    fun getColor(index: Int): Color {
-       if (index > 64) unreachable("Unable to get color with index $index")
+       if (index >= 64) unreachable("Unable to get color with index $index")
        return map[index]
    }
 }
