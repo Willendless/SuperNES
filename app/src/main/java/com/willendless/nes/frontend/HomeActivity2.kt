@@ -10,12 +10,14 @@ import android.widget.SearchView
 import android.widget.Toast
 import androidx.core.view.GravityCompat
 import androidx.recyclerview.widget.GridLayoutManager
+import com.google.android.material.navigation.NavigationView
 import com.willendless.nes.R
 import com.willendless.nes.backend.NESDatabaseHelper
 import kotlinx.android.synthetic.main.activity_home2.*
 import org.w3c.dom.Text
 
-class HomeActivity2 : AppCompatActivity(), SearchView.OnQueryTextListener {
+class HomeActivity2 : AppCompatActivity(), SearchView.OnQueryTextListener,
+    NavigationView.OnNavigationItemSelectedListener {
 
     companion object {
         fun actionStart(context: Context) {
@@ -31,11 +33,17 @@ class HomeActivity2 : AppCompatActivity(), SearchView.OnQueryTextListener {
         supportActionBar?.let {
             it.setDisplayHomeAsUpEnabled(true)
             it.setHomeAsUpIndicator(R.drawable.menu)
+            it.setDisplayShowTitleEnabled(false)
         }
         favorite_button.setOnClickListener {
             GameCollectionActivity.actionStart(this)
         }
 
+        // navigation view
+        nav_view.setCheckedItem(R.id.nav_collection)
+        nav_view.setNavigationItemSelectedListener(this)
+
+        // game card of recycle view
         val dbHelper = NESDatabaseHelper(this, "supernes", 1)
             .readableDatabase
         val cursor = dbHelper.query("game", arrayOf("name", "img_name"),
@@ -87,4 +95,14 @@ class HomeActivity2 : AppCompatActivity(), SearchView.OnQueryTextListener {
         TODO("Not yet implemented")
     }
 
+    override fun onNavigationItemSelected(item: MenuItem): Boolean {
+        when (item.itemId) {
+            R.id.nav_collection -> GameCollectionActivity.actionStart(this)
+            R.id.nav_open_nes_dev -> WebViewActivity.actionStart(this,
+                "https://nesdev.com/")
+            R.id.nav_open_nes_world -> WebViewActivity.actionStart(this,
+                "https://www.nesworld.com/")
+        }
+        return true
+    }
 }

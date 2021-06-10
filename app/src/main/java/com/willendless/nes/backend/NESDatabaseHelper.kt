@@ -96,6 +96,5 @@ class NESDatabaseHelper(context: Context, name: String, version: Int) :
     }
 
     override fun onUpgrade(db: SQLiteDatabase?, oldVersion: Int, newVersion: Int) {
-        TODO("Not yet implemented")
     }
 }
