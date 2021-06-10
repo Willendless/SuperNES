@@ -93,6 +93,26 @@ class NESDatabaseHelper(context: Context, name: String, version: Int) :
             put("img_name", "virus")
         }
         db?.insert("game", null, mario)
+
+        val lanMaster = ContentValues().apply {
+            put("name", "兰大师")
+            put("info", "")
+            put("year", 2011)
+            put("type", "解谜")
+            put("file_path", "testGames/Lan_Master.nes")
+            put("img_name", "lan_master")
+        }
+        db?.insert("game", null, lanMaster)
+
+        val lawnMower = ContentValues().apply {
+            put("name", "无敌割草机")
+            put("info", "")
+            put("year", 2011)
+            put("type", "Arcade")
+            put("file_path", "testGames/Lawn_Mower.nes")
+            put("img_name", "lawn_mower")
+        }
+        db?.insert("game", null, lawnMower)
     }
 
     override fun onUpgrade(db: SQLiteDatabase?, oldVersion: Int, newVersion: Int) {
