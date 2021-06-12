@@ -26,4 +26,8 @@ class AndroidInput(context: Context, view: View, scaleX: Float, scaleY: Float): 
     override fun getKeyEvents(): List<Input.KeyEvent> = keyboardHandler.getKeyEvents()
 
     override fun getTouchEvents(): List<Input.TouchEvent> = touchHandler.getTouchEvents()
+
+    override fun getJoypadEvents(): List<Input.JoypadEvent> {
+        TODO("Not yet implemented")
+    }
 }

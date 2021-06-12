@@ -41,7 +41,7 @@ class GameCollectionItemAdapter(val context: Context, private val gameCollection
                 "name=?", arrayOf(gameName),
                 null, null, null)
             if (cursor.moveToFirst()) {
-                GameActivity.actionStart(context, cursor.getString(
+                GameActivity.actionStart(context, gameName, cursor.getString(
                     cursor.getColumnIndex("file_path")))
             }
             cursor.close()

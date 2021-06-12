@@ -9,9 +9,11 @@ import android.view.Window
 import android.view.WindowInsets
 import android.view.WindowManager
 import androidx.appcompat.app.AppCompatActivity
+import com.willendless.nes.R
 import com.willendless.nes.framework.*
+import kotlinx.android.synthetic.main.activity_game.*
 
-abstract class AndroidGame: AppCompatActivity(), Game {
+abstract class AndroidGame(): AppCompatActivity(), Game {
     lateinit var renderView: AndroidFastRenderView
     private lateinit var graphics: Graphics
     private lateinit var audio: Audio
@@ -21,13 +23,8 @@ abstract class AndroidGame: AppCompatActivity(), Game {
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
+        setContentView(R.layout.activity_game)
 
-        Log.d("Game", "create")
-        requestWindowFeature(Window.FEATURE_NO_TITLE)
-
-        // snake game resolution
-//        val frameBufferWidth = 32
-//        val frameBufferHeight = 32
         // NES resolution
         val frameBufferWidth = 256
         val frameBufferHeight = 240
@@ -38,13 +35,15 @@ abstract class AndroidGame: AppCompatActivity(), Game {
         // scaleY
         val scaleY = 1F
 
-        renderView = AndroidFastRenderView(this, frameBuffer)
+        game_panel.game = this
+        game_panel.frameBuffer = frameBuffer
+        renderView = game_panel
+
         graphics = AndroidGraphics(assets, frameBuffer)
         fileIO = AndroidFileIO(this)
         audio = AndroidAudio(this)
-        input = AndroidInput(this, renderView, scaleX, scaleY)
+        input = AndroidInput(this, game_panel, scaleX, scaleY)
         screen = getStartScreen()
-        setContentView(renderView)
         window.addFlags(WindowManager.LayoutParams.FLAG_KEEP_SCREEN_ON)
     }
 
@@ -81,4 +80,11 @@ abstract class AndroidGame: AppCompatActivity(), Game {
     }
 
     override fun getCurrentScreen(): Screen = screen
+
+    fun gameFinish() {
+        renderView.pause()
+        screen.pause()
+        window.clearFlags(WindowManager.LayoutParams.FLAG_KEEP_SCREEN_ON)
+        screen.dispose()
+    }
 }

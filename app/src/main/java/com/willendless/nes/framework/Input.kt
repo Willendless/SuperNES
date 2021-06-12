@@ -14,6 +14,11 @@ interface Input {
             val KEY_UP = 1
         }
     }
+    data class JoypadEvent(var type: JoyPadType = JoyPadType.UP) {
+        enum class JoyPadType {
+            UP, DOWN, LEFT, RIGHT, SELECT, START, A, B
+        }
+    }
 
     fun isKeyPressed(keyCode: Int): Boolean
     fun isTouchDown(pointer: Int): Boolean
@@ -24,4 +29,5 @@ interface Input {
     fun getAccelZ(): Float
     fun getKeyEvents(): List<KeyEvent>
     fun getTouchEvents(): List<TouchEvent>
+    fun getJoypadEvents(): List<JoypadEvent>
 }

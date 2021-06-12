@@ -35,22 +35,17 @@ class GameIntroActivity : AppCompatActivity() {
         TextImageItem("", R.drawable.type)
     )
 
-    private lateinit var gameName: String
-
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
-        gameName = intent.getStringExtra(GAME_NAME)!!
+        setContentView(R.layout.activity_game_intro)
+
+        val gameName = intent.getStringExtra(GAME_NAME)!!
         val gameImageId = intent.getIntExtra(GAME_IMAGE_ID, -1)
 
-        setContentView(R.layout.activity_game_intro)
-        setSupportActionBar(normal_toolbar)
-        supportActionBar?.let {
-            it.setDisplayHomeAsUpEnabled(true)
-            it.setDisplayShowTitleEnabled(false)
-        }
-
         if (gameImageId == -1) {
+            Log.d("GameIntroActivity", "Failed to find game image")
         } else {
+            Log.d("", "imageid: $gameImageId, gamename: $gameName")
             Glide.with(this).load(gameImageId).into(game_intro_image)
         }
 
@@ -80,7 +75,7 @@ class GameIntroActivity : AppCompatActivity() {
             when (filePath) {
                 "" -> Toast.makeText(this, "failed to find game rom file",
                     Toast.LENGTH_SHORT).show()
-                else -> GameActivity.actionStart(this, filePath)
+                else -> GameActivity.actionStart(this, gameName, filePath)
             }
         }
 
