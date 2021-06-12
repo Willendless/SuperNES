@@ -24,6 +24,10 @@ object Joypads {
         else buttonStatus xor flag.mask
     }
 
+    fun reset() {
+        buttonStatus = 0u
+    }
+
     // Write by NESBus from CPU
     // write byte whose first bit is 1 -> reset buttonIndex
     // write byte whose first bit is 0 -> begin cycle reads

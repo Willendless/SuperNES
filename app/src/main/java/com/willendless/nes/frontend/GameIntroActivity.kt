@@ -101,6 +101,7 @@ class GameIntroActivity : AppCompatActivity() {
             collect.setCompoundDrawables(img2, null, null, null)
         }
         collectionCursor.close()
+
         collect.setOnClickListener {
             collected = !collected
             if (collected) {

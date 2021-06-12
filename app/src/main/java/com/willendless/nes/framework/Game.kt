@@ -8,4 +8,5 @@ interface Game {
     fun setScreen(screen: Screen)
     fun getCurrentScreen(): Screen
     fun getStartScreen(): Screen
+    fun getJoypadEvents(): List<Input.JoypadEvent>
 }

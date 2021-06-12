@@ -2,4 +2,6 @@
     <string name="app_name">SuperNES</string>
     <string name="boot_exit"><u>离开</u></string>
     <string name="boot_start"><u>开始</u></string>
+    <string name="select">SELECT</string>
+    <string name="start">START</string>
 </resources>

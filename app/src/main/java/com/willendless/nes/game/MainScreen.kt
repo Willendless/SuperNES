@@ -8,6 +8,7 @@ import com.willendless.nes.emulator.NESBus
 import com.willendless.nes.emulator.cpu.CPU
 import com.willendless.nes.emulator.ppu.PPU
 import com.willendless.nes.emulator.util.NESException
+import com.willendless.nes.emulator.util.unreachable
 import com.willendless.nes.framework.Game
 import com.willendless.nes.framework.Input
 import com.willendless.nes.framework.Screen
@@ -19,20 +20,22 @@ class MainScreen(game: Game): Screen(game) {
     override fun update(deltaTime: Float): Boolean {
         val bottom = 1920
         val right = 1080
-        val touchEvents = game.getInput().getTouchEvents()
-        Log.d("touchEvents len", "${touchEvents.size}")
-        for (e in touchEvents) {
+        val joypadEvents = game.getJoypadEvents()
+        Log.d("touchEvents len", "${joypadEvents.size}")
+
+        Joypads.reset()
+        for (e in joypadEvents) {
             val value = when (e.type) {
-                Input.TouchEvent.TOUCH_DOWN -> true
-                Input.TouchEvent.TOUCH_UP -> false
-                else -> true
+                Input.JoypadEvent.UP -> Joypads.setStatus(Joypads.JoypadButtonFlag.UP, true)
+                Input.JoypadEvent.DOWN -> Joypads.setStatus(Joypads.JoypadButtonFlag.DOWN, true)
+                Input.JoypadEvent.LEFT -> Joypads.setStatus(Joypads.JoypadButtonFlag.LEFT, true)
+                Input.JoypadEvent.RIGHT -> Joypads.setStatus(Joypads.JoypadButtonFlag.RIGHT, true)
+                Input.JoypadEvent.A -> Joypads.setStatus(Joypads.JoypadButtonFlag.BUTTON_A, true)
+                Input.JoypadEvent.B -> Joypads.setStatus(Joypads.JoypadButtonFlag.BUTTON_B, true)
+                Input.JoypadEvent.SELECT -> Joypads.setStatus(Joypads.JoypadButtonFlag.SELECT, true)
+                Input.JoypadEvent.START -> Joypads.setStatus(Joypads.JoypadButtonFlag.START, true)
+                else -> {}
             }
-            Joypads.setStatus(Joypads.JoypadButtonFlag.START, value)
-//            when {
-//                e.x in (right / 4 * 3..right) && e.y in (bottom / 4 * 3.. bottom / 8 * 7) ->
-//                    Joypads.setStatus(Joypads.JoypadButtonFlag.START, value)
-//            }
-            Log.d("", "${e.type}, $value, (${e.x}, ${e.y}),  mem val ${Joypads.buttonStatus}")
         }
 
         try {

@@ -14,9 +14,16 @@ interface Input {
             val KEY_UP = 1
         }
     }
-    data class JoypadEvent(var type: JoyPadType = JoyPadType.UP) {
-        enum class JoyPadType {
-            UP, DOWN, LEFT, RIGHT, SELECT, START, A, B
+    data class JoypadEvent(var type: Int = UP) {
+        companion object {
+            val UP = 0
+            val DOWN = 1
+            val LEFT = 2
+            val RIGHT = 3
+            val SELECT = 4
+            val START = 5
+            val A = 6
+            val B = 7
         }
     }
 

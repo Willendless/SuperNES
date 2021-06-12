@@ -35,9 +35,9 @@ abstract class AndroidGame(): AppCompatActivity(), Game {
         // scaleY
         val scaleY = 1F
 
-        game_panel.game = this
-        game_panel.frameBuffer = frameBuffer
         renderView = game_panel
+        renderView.game = this
+        renderView.frameBuffer = frameBuffer
 
         graphics = AndroidGraphics(assets, frameBuffer)
         fileIO = AndroidFileIO(this)
@@ -81,10 +81,4 @@ abstract class AndroidGame(): AppCompatActivity(), Game {
 
     override fun getCurrentScreen(): Screen = screen
 
-    fun gameFinish() {
-        renderView.pause()
-        screen.pause()
-        window.clearFlags(WindowManager.LayoutParams.FLAG_KEEP_SCREEN_ON)
-        screen.dispose()
-    }
 }
