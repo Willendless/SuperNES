@@ -39,6 +39,12 @@ class GameIntroActivity : AppCompatActivity() {
         super.onCreate(savedInstanceState)
         setContentView(R.layout.activity_game_intro)
 
+        setSupportActionBar(normal_toolbar)
+        supportActionBar?.let {
+            it.setDisplayShowTitleEnabled(false)
+            it.setDisplayHomeAsUpEnabled(true)
+        }
+
         val gameName = intent.getStringExtra(GAME_NAME)!!
         val gameImageId = intent.getIntExtra(GAME_IMAGE_ID, -1)
 
