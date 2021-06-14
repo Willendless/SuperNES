@@ -1,6 +1,7 @@
 package com.willendless.nes.emulator.ppu
 
 import android.os.Build
+import android.util.Log
 import androidx.annotation.RequiresApi
 import com.willendless.nes.emulator.Rom
 import com.willendless.nes.emulator.util.nesAssert
@@ -310,12 +311,14 @@ object PPU {
         val tileBase = (bank + tileIndex * 16) % chrRom.size
         val tile = chrRom.slice(tileBase until tileBase + 16)
         val paletteTable = getSpritePaletteTable(platteIndex)
+
         for (r in 0 until 8) {
             var lower = tile[r].toInt()
             var upper = tile[r + 8].toInt()
             for (p in (0 until 8).reversed()) {
                 val index = ((1 and upper) shl 1) or (1 and lower)
 //                if (index == 0) continue
+
                 lower = lower shr 1
                 upper = upper shr 1
                 val color = PaletteMap.getColor(paletteTable[index].toInt())

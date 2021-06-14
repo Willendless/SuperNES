@@ -5,6 +5,7 @@ import android.content.Intent
 import android.os.Bundle
 import android.util.Log
 import android.view.MenuItem
+import android.view.MotionEvent
 import android.view.View
 import com.willendless.nes.R
 import com.willendless.nes.emulator.util.unreachable
@@ -15,7 +16,7 @@ import com.willendless.nes.framework.impl.AndroidGame
 import com.willendless.nes.game.LoadingScreen
 import kotlinx.android.synthetic.main.activity_game.*
 
-class GameActivity: AndroidGame(), View.OnClickListener {
+class GameActivity: AndroidGame(), View.OnTouchListener {
     private val joypadEventPool = Pool<Input.JoypadEvent>(100) { Input.JoypadEvent()  }
     private val joypadEventsBuffer = ArrayList<Input.JoypadEvent>()
     private val joypadEvents = ArrayList<Input.JoypadEvent>()
@@ -53,7 +54,7 @@ class GameActivity: AndroidGame(), View.OnClickListener {
         )
 
         for (b in joypadButtons) {
-            b.setOnClickListener(this)
+            b.setOnTouchListener(this)
         }
     }
 
@@ -69,27 +70,26 @@ class GameActivity: AndroidGame(), View.OnClickListener {
         return true
     }
 
-    override fun onClick(v: View?) {
-        Log.d("click!", "${v?.id}")
-        if (v != null) {
-            synchronized(this) {
-                joypadEventPool.newObject().let {
-                    it.type = when (v.id) {
-                        R.id.pad_a -> Input.JoypadEvent.A
-                        R.id.pad_b -> Input.JoypadEvent.B
-                        R.id.pad_select -> Input.JoypadEvent.SELECT
-                        R.id.pad_start -> Input.JoypadEvent.START
-                        R.id.pad_up -> Input.JoypadEvent.UP
-                        R.id.pad_down -> Input.JoypadEvent.DOWN
-                        R.id.pad_left -> Input.JoypadEvent.LEFT
-                        R.id.pad_right -> Input.JoypadEvent.RIGHT
-                        else -> unreachable("Unknown key")
-                    }
-                    joypadEventsBuffer.add(it)
-                }
-            }
-        }
-    }
+//    override fun onTu(v: View?) {
+//        if (v != null) {
+//            synchronized(this) {
+//                joypadEventPool.newObject().let {
+//                    it.type = when (v.id) {
+//                        R.id.pad_a -> Input.JoypadEvent.A
+//                        R.id.pad_b -> Input.JoypadEvent.B
+//                        R.id.pad_select -> Input.JoypadEvent.SELECT
+//                        R.id.pad_start -> Input.JoypadEvent.START
+//                        R.id.pad_up -> Input.JoypadEvent.UP
+//                        R.id.pad_down -> Input.JoypadEvent.DOWN
+//                        R.id.pad_left -> Input.JoypadEvent.LEFT
+//                        R.id.pad_right -> Input.JoypadEvent.RIGHT
+//                        else -> unreachable("Unknown key")
+//                    }
+//                    joypadEventsBuffer.add(it)
+//                }
+//            }
+//        }
+//    }
 
     override fun getJoypadEvents(): List<Input.JoypadEvent> {
         synchronized(this) {
@@ -102,5 +102,36 @@ class GameActivity: AndroidGame(), View.OnClickListener {
             joypadEventsBuffer.clear()
             return joypadEvents
         }
+    }
+
+    override fun onTouch(v: View?, event: MotionEvent?): Boolean {
+        if (v != null && event != null) {
+            val joypadEvent = joypadEventPool.newObject()
+
+            when (event.action) {
+                MotionEvent.ACTION_UP -> joypadEvent.padDown = false
+                MotionEvent.ACTION_DOWN -> joypadEvent.padDown = true
+                else -> {
+                    joypadEventPool.free(joypadEvent)
+                    return false
+                }
+            }
+
+            synchronized(this) {
+                joypadEvent.type = when (v.id) {
+                    R.id.pad_a -> Input.JoypadEvent.A
+                    R.id.pad_b -> Input.JoypadEvent.B
+                    R.id.pad_select -> Input.JoypadEvent.SELECT
+                    R.id.pad_start -> Input.JoypadEvent.START
+                    R.id.pad_up -> Input.JoypadEvent.UP
+                    R.id.pad_down -> Input.JoypadEvent.DOWN
+                    R.id.pad_left -> Input.JoypadEvent.LEFT
+                    R.id.pad_right -> Input.JoypadEvent.RIGHT
+                    else -> unreachable("Unknown key")
+                }
+                joypadEventsBuffer.add(joypadEvent)
+            }
+        }
+        return false
     }
 }

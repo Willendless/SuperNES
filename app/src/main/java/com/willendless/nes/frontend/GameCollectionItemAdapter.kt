@@ -1,12 +1,14 @@
 package com.willendless.nes.frontend
 
 import android.content.Context
+import android.content.Intent
 import android.view.LayoutInflater
 import android.view.View
 import android.view.ViewGroup
 import android.widget.ImageButton
 import android.widget.ImageView
 import android.widget.TextView
+import androidx.core.content.contentValuesOf
 import androidx.recyclerview.widget.RecyclerView
 import com.bumptech.glide.Glide
 import com.willendless.nes.R
@@ -34,6 +36,12 @@ class GameCollectionItemAdapter(val context: Context, private val gameCollection
         holder.gameText.text = gameName
         Glide.with(context).load(gameInfo.imageId).into(holder.gameImage)
 
+        // game intro
+        holder.itemView.setOnClickListener {
+            GameIntroActivity.actionStart(context, gameName, gameInfo.imageId)
+        }
+
+        // start game
         holder.gameStart.setOnClickListener {
             val dbHelper = NESDatabaseHelper(context, "supernes", 1)
                 .readableDatabase
@@ -47,6 +55,7 @@ class GameCollectionItemAdapter(val context: Context, private val gameCollection
             cursor.close()
         }
 
+        // delete game from collection
         holder.gameDelete.setOnClickListener {
             val dbHelper = NESDatabaseHelper(context, "supernes", 1)
                 .writableDatabase

@@ -14,7 +14,7 @@ interface Input {
             val KEY_UP = 1
         }
     }
-    data class JoypadEvent(var type: Int = UP) {
+    data class JoypadEvent(var type: Int = UP, var padDown: Boolean = true) {
         companion object {
             val UP = 0
             val DOWN = 1

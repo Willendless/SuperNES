@@ -1,7 +1,5 @@
 package com.willendless.nes.emulator
 
-import android.util.Log
-
 @kotlin.ExperimentalUnsignedTypes
 object Joypads {
     enum class JoypadButtonFlag(val mask: UByte) {

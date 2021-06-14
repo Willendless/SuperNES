@@ -4,8 +4,10 @@ import android.content.Context
 import android.content.Intent
 import androidx.appcompat.app.AppCompatActivity
 import android.os.Bundle
+import android.util.Log
 import android.view.Menu
 import android.view.MenuItem
+import android.view.View
 import android.widget.SearchView
 import android.widget.Toast
 import androidx.core.view.GravityCompat
@@ -60,6 +62,10 @@ class HomeActivity2 : AppCompatActivity(), SearchView.OnQueryTextListener,
         game_recycle_view.let {
             it.layoutManager = GridLayoutManager(this, 2)
             it.adapter = GameAdapter(this, gameList)
+        }
+        game_recycle_view.setOnClickListener { v: View? ->
+            println("??????????????????????")
+            Log.d("", "???/$v")
         }
         cursor.close()
     }

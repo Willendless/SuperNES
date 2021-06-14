@@ -18,22 +18,18 @@ import kotlin.system.exitProcess
 @ExperimentalUnsignedTypes
 class MainScreen(game: Game): Screen(game) {
     override fun update(deltaTime: Float): Boolean {
-        val bottom = 1920
-        val right = 1080
         val joypadEvents = game.getJoypadEvents()
-        Log.d("touchEvents len", "${joypadEvents.size}")
 
-        Joypads.reset()
         for (e in joypadEvents) {
-            val value = when (e.type) {
-                Input.JoypadEvent.UP -> Joypads.setStatus(Joypads.JoypadButtonFlag.UP, true)
-                Input.JoypadEvent.DOWN -> Joypads.setStatus(Joypads.JoypadButtonFlag.DOWN, true)
-                Input.JoypadEvent.LEFT -> Joypads.setStatus(Joypads.JoypadButtonFlag.LEFT, true)
-                Input.JoypadEvent.RIGHT -> Joypads.setStatus(Joypads.JoypadButtonFlag.RIGHT, true)
-                Input.JoypadEvent.A -> Joypads.setStatus(Joypads.JoypadButtonFlag.BUTTON_A, true)
-                Input.JoypadEvent.B -> Joypads.setStatus(Joypads.JoypadButtonFlag.BUTTON_B, true)
-                Input.JoypadEvent.SELECT -> Joypads.setStatus(Joypads.JoypadButtonFlag.SELECT, true)
-                Input.JoypadEvent.START -> Joypads.setStatus(Joypads.JoypadButtonFlag.START, true)
+            when (e.type) {
+                Input.JoypadEvent.UP -> Joypads.setStatus(Joypads.JoypadButtonFlag.UP, e.padDown)
+                Input.JoypadEvent.DOWN -> Joypads.setStatus(Joypads.JoypadButtonFlag.DOWN, e.padDown)
+                Input.JoypadEvent.LEFT -> Joypads.setStatus(Joypads.JoypadButtonFlag.LEFT, e.padDown)
+                Input.JoypadEvent.RIGHT -> Joypads.setStatus(Joypads.JoypadButtonFlag.RIGHT, e.padDown)
+                Input.JoypadEvent.A -> Joypads.setStatus(Joypads.JoypadButtonFlag.BUTTON_A, e.padDown)
+                Input.JoypadEvent.B -> Joypads.setStatus(Joypads.JoypadButtonFlag.BUTTON_B, e.padDown)
+                Input.JoypadEvent.SELECT -> Joypads.setStatus(Joypads.JoypadButtonFlag.SELECT, e.padDown)
+                Input.JoypadEvent.START -> Joypads.setStatus(Joypads.JoypadButtonFlag.START, e.padDown)
                 else -> {}
             }
         }
