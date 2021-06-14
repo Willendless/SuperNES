@@ -29,6 +29,7 @@
         <androidx.core.widget.NestedScrollView
             android:layout_width="match_parent"
             android:layout_height="match_parent"
+            android:layout_marginTop="10dp"
             app:layout_behavior="@string/appbar_scrolling_view_behavior">
             <LinearLayout
                 android:orientation="vertical"
@@ -82,20 +83,26 @@
                         />
                 </ScrollView>
 
-                <ScrollView
-                    android:layout_width="match_parent"
-                    android:layout_height="150dp"
-                    android:layout_marginTop="4dp"
-                    android:layout_marginBottom="20dp"
-                    android:layout_marginLeft="10dp"
-                    android:layout_marginRight="10dp"
-                    android:background="@color/gray">
-                    <TextView
-                        android:text="游戏简介来了\na\ns\nd\nf\na\ns\ndfasfdasdfasdf"
-                        android:id="@+id/game_intro"
+                    <ScrollView
                         android:layout_width="match_parent"
-                        android:layout_height="wrap_content"/>
-                </ScrollView>
+                        android:layout_height="150dp"
+                        android:layout_marginTop="4dp"
+                        android:layout_marginBottom="20dp"
+                        android:layout_marginLeft="10dp"
+                        android:layout_marginRight="10dp">
+                        <androidx.cardview.widget.CardView
+                            android:layout_width="match_parent"
+                            android:layout_height="wrap_content"
+                            app:cardBackgroundColor="@color/gray"
+                            android:minHeight="150dp"
+                            app:cardCornerRadius="4dp">
+                            <TextView
+                                android:text="这个游戏好像没有简介\n"
+                                android:id="@+id/game_intro"
+                                android:layout_width="match_parent"
+                                android:layout_height="wrap_content"/>
+                        </androidx.cardview.widget.CardView>
+                    </ScrollView>
 
 
                 <LinearLayout
