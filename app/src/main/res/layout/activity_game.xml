@@ -52,7 +52,7 @@
 
             <ImageButton
                 android:id="@+id/pad_up"
-                android:src="@drawable/up"
+                android:src="@drawable/up_arrow"
                 android:layout_gravity="center"
                 android:layout_width="90dp"
                 android:layout_height="70dp" />
