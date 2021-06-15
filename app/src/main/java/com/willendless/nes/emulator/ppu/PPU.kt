@@ -317,10 +317,11 @@ object PPU {
             var upper = tile[r + 8].toInt()
             for (p in (0 until 8).reversed()) {
                 val index = ((1 and upper) shl 1) or (1 and lower)
-//                if (index == 0) continue
-
                 lower = lower shr 1
                 upper = upper shr 1
+
+                if (index == 0) continue
+
                 val color = PaletteMap.getColor(paletteTable[index].toInt())
                 when {
                     !isFlipHorizontal && !isFlipVertical ->
