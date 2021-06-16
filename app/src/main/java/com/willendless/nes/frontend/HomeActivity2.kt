@@ -4,19 +4,19 @@ import android.content.Context
 import android.content.Intent
 import androidx.appcompat.app.AppCompatActivity
 import android.os.Bundle
-import android.util.Log
 import android.view.Menu
 import android.view.MenuItem
-import android.view.View
 import android.widget.SearchView
 import android.widget.Toast
 import androidx.core.view.GravityCompat
-import androidx.recyclerview.widget.GridLayoutManager
+import androidx.fragment.app.Fragment
+import androidx.fragment.app.FragmentActivity
+import androidx.viewpager2.adapter.FragmentStateAdapter
 import com.google.android.material.navigation.NavigationView
+import com.google.android.material.tabs.TabLayout
+import com.google.android.material.tabs.TabLayoutMediator
 import com.willendless.nes.R
-import com.willendless.nes.backend.NESDatabaseHelper
 import kotlinx.android.synthetic.main.activity_home2.*
-import org.w3c.dom.Text
 
 class HomeActivity2 : AppCompatActivity(), SearchView.OnQueryTextListener,
     NavigationView.OnNavigationItemSelectedListener {
@@ -27,6 +27,14 @@ class HomeActivity2 : AppCompatActivity(), SearchView.OnQueryTextListener,
             context.startActivity(intent)
         }
     }
+
+    private val fragmentsTabTitles = arrayOf(
+        "全部",
+        "街机",
+        "射击",
+        "迷宫",
+        "解谜"
+    )
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
@@ -45,29 +53,19 @@ class HomeActivity2 : AppCompatActivity(), SearchView.OnQueryTextListener,
         nav_view.setCheckedItem(R.id.nav_collection)
         nav_view.setNavigationItemSelectedListener(this)
 
-        // game card of recycle view
-        val dbHelper = NESDatabaseHelper(this, "supernes", 1)
-            .readableDatabase
-        val cursor = dbHelper.query("game", arrayOf("name", "img_name"),
-            null, null, null, null, "id")
-        val gameList = mutableListOf<TextImageItem>()
-        if (cursor.moveToFirst()) {
-            do {
-                val name = cursor.getString(cursor.getColumnIndex("name"))
-                val imgName = cursor.getString(cursor.getColumnIndex("img_name"))
-                gameList.add(TextImageItem(name, this.resources.
-                    getIdentifier(imgName, "drawable", this.packageName)))
-            } while (cursor.moveToNext());
-        }
-        game_recycle_view.let {
-            it.layoutManager = GridLayoutManager(this, 2)
-            it.adapter = GameAdapter(this, gameList)
-        }
-        game_recycle_view.setOnClickListener { v: View? ->
-            println("??????????????????????")
-            Log.d("", "???/$v")
-        }
-        cursor.close()
+        viewPager.adapter = GamePageAdapter(this)
+
+        TabLayoutMediator(homeTab, viewPager) { tab: TabLayout.Tab, i: Int ->
+            tab.text = fragmentsTabTitles[i]
+        }.attach()
+    }
+
+    inner class GamePageAdapter(fa: FragmentActivity)
+        : FragmentStateAdapter(fa) {
+        override fun getItemCount(): Int = fragmentsTabTitles.size
+
+        override fun createFragment(position: Int): Fragment =
+            HomeGameFragment(fragmentsTabTitles[position])
     }
 
     override fun onCreateOptionsMenu(menu: Menu?): Boolean {
@@ -98,7 +96,7 @@ class HomeActivity2 : AppCompatActivity(), SearchView.OnQueryTextListener,
     }
 
     override fun onQueryTextChange(newText: String?): Boolean {
-        TODO("Not yet implemented")
+        return false
     }
 
     override fun onNavigationItemSelected(item: MenuItem): Boolean {
