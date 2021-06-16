@@ -25,6 +25,32 @@ class NESDatabaseHelper(context: Context, name: String, version: Int) :
         db?.execSQL(createGame)
         db?.execSQL(createCollection)
 
+
+
+
+        // super painter
+        val superpainter = ContentValues().apply {
+            put("name", "超级画家")
+            put("info", "于是你成为了一名超级画家。")
+            put("year", 2015)
+            put("type", "街机")
+            put("file_path", "testGames/superpainter.nes")
+            put("img_name", "superpainter")
+        }
+        db?.insert("game", null, superpainter)
+
+        // donkey kong
+        val donkeyKong = ContentValues().apply {
+            put("name", "大金刚")
+            put("info", "你需要操纵主角穿过一系列平台，同时避开或跳过障碍。" +
+                    "最终从猩猩大金刚手中救出女子（现在叫宝琳）。")
+            put("year", 1981)
+            put("type", "街机")
+            put("file_path", "testGames/DonkeyKong.nes")
+            put("img_name", "kong")
+        }
+        db?.insert("game", null, donkeyKong)
+
         // AlterEgo
         val alterego = ContentValues().apply {
             put("name", "Alter Ego")
@@ -64,6 +90,7 @@ class NESDatabaseHelper(context: Context, name: String, version: Int) :
         }
         db?.insert("game", null, cyo)
 
+        // pacman
         val pacman = ContentValues().apply {
             put("name", "pacman")
             put("info", "经典吃豆人小游戏。")
@@ -74,7 +101,7 @@ class NESDatabaseHelper(context: Context, name: String, version: Int) :
         }
         db?.insert("game", null, pacman)
 
-
+        // mario
         val mario = ContentValues().apply {
             put("name", "超级马里奥")
             put("info", "本游戏中玩家需要控制游戏系列的主角——马力奥。" +
@@ -90,6 +117,18 @@ class NESDatabaseHelper(context: Context, name: String, version: Int) :
         }
         db?.insert("game", null, mario)
 
+        // pong
+        val pong = ContentValues().apply {
+            put("name", "乒乓")
+            put("info", "来一起打乒乓球吧！")
+            put("year", 2017)
+            put("type", "街机")
+            put("file_path", "testGames/pong.nes")
+            put("img_name", "pong")
+        }
+        db?.insert("game", null, pong)
+
+        // lanMaster
         val lanMaster = ContentValues().apply {
             put("name", "兰大师")
             put("info", "这是一个不知道如何操作的游戏。。。")
@@ -141,15 +180,6 @@ class NESDatabaseHelper(context: Context, name: String, version: Int) :
         }
         db?.insert("game", null, bombSweeper)
 
-        val superpainter = ContentValues().apply {
-            put("name", "超级画家")
-            put("info", "于是你成为了一名超级画家。")
-            put("year", 2015)
-            put("type", "街机")
-            put("file_path", "testGames/superpainter.nes")
-            put("img_name", "superpainter")
-        }
-        db?.insert("game", null, superpainter)
     }
 
     override fun onUpgrade(db: SQLiteDatabase?, oldVersion: Int, newVersion: Int) {
