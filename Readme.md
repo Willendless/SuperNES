@@ -11,13 +11,9 @@ Super NES Emulator in Android written using Kotlin
 
 Some snapshots are as follows:
 
-![boot](./imgs/boot.png)
+![boot](./imgs/1.png)
 
-![boot](./imgs/home.png)
-
-![boot](./imgs/gameintro.png)
-
-![boot](./imgs/game.png)
+![boot](./imgs/2.png)
 
 ## Features
 
