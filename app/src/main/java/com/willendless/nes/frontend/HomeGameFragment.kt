@@ -43,9 +43,9 @@ class HomeGameFragment(private val title: String) : Fragment() {
             cursor.close()
             dbHelper.close()
 
-            view.findViewById<RecyclerView>(R.id.game_recycle_view).let {
-                it.layoutManager = GridLayoutManager(context, 2)
-                it.adapter = GameAdapter(context!!, gameList)
+            view.findViewById<RecyclerView>(R.id.game_recycle_view).apply {
+                layoutManager = GridLayoutManager(context, 2)
+                adapter = GameAdapter(context, gameList)
             }
         }
         return view

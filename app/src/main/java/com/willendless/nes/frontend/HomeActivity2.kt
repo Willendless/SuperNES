@@ -92,7 +92,12 @@ class HomeActivity2 : AppCompatActivity(), SearchView.OnQueryTextListener,
     }
 
     override fun onQueryTextSubmit(query: String?): Boolean {
-        TODO("Not yet implemented")
+        if (query != null) {
+            GameSearchActivity.actionStart(this, query)
+        } else {
+            Toast.makeText(this, "请输入你想查找的游戏名", Toast.LENGTH_SHORT)
+        }
+        return true
     }
 
     override fun onQueryTextChange(newText: String?): Boolean {

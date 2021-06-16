@@ -17,9 +17,9 @@
             android:theme="@style/Theme.NES"
             app:navigationIcon="@drawable/back">
             <TextView
+                android:id="@+id/listGameTitle"
                 android:layout_width="wrap_content"
                 android:layout_height="wrap_content"
-                android:text="我的收藏"
                 android:textSize="20sp"
                 android:layout_gravity = "center"
                 />

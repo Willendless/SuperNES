@@ -24,6 +24,7 @@ class GameCollectionActivity : AppCompatActivity() {
         super.onCreate(savedInstanceState)
         setContentView(R.layout.activity_game_collection)
 
+        listGameTitle.text = "我的收藏"
         setSupportActionBar(normal_toolbar)
         supportActionBar?.let {
             it.setDisplayHomeAsUpEnabled(true)
@@ -53,9 +54,9 @@ class GameCollectionActivity : AppCompatActivity() {
         }
         cursor.close()
 
-        game_collection_recycle_view.let {
-            it.layoutManager = LinearLayoutManager(this)
-            it.adapter = GameCollectionItemAdapter(this, gameCollectionList)
+        game_collection_recycle_view.apply {
+            layoutManager = LinearLayoutManager(this.context)
+            adapter = GameCollectionItemAdapter(this.context, gameCollectionList)
         }
     }
 

@@ -30,6 +30,7 @@
         <activity android:name=".frontend.GameIntroActivity" />
         <activity android:name=".frontend.GameActivity" />
         <activity android:name=".frontend.HomeActivity2" />
+        <activity android:name=".frontend.GameSearchActivity"/>
         <activity android:name=".frontend.BootActivity">
             <intent-filter>
                 <action android:name="android.intent.action.MAIN" />

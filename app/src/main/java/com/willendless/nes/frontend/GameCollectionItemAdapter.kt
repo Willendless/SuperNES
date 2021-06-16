@@ -45,14 +45,14 @@ class GameCollectionItemAdapter(val context: Context, private val gameCollection
         holder.gameStart.setOnClickListener {
             val dbHelper = NESDatabaseHelper(context, "supernes", 1)
                 .readableDatabase
-            val cursor = dbHelper.query("game", arrayOf("file_path"),
+            dbHelper.query("game", arrayOf("file_path"),
                 "name=?", arrayOf(gameName),
-                null, null, null)
-            if (cursor.moveToFirst()) {
-                GameActivity.actionStart(context, gameName, cursor.getString(
-                    cursor.getColumnIndex("file_path")))
+                null, null, null).use {
+                if (it.moveToFirst()) {
+                    GameActivity.actionStart(context, gameName, it.getString(
+                        it.getColumnIndex("file_path")))
+                }
             }
-            cursor.close()
         }
 
         // delete game from collection
